@@ -61,7 +61,33 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// ML Platform custom colors
+				ml: {
+					purple: {
+						light: '#A78BFA',
+						DEFAULT: '#8B5CF6',
+						dark: '#7C3AED',
+					},
+					blue: {
+						light: '#93C5FD',
+						DEFAULT: '#3B82F6',
+						dark: '#1D4ED8',
+					},
+					gray: {
+						light: '#F3F4F6',
+						DEFAULT: '#9CA3AF',
+						dark: '#4B5563',
+					},
+					code: {
+						bg: '#1E293B',
+						text: '#E2E8F0',
+					}
 				}
+			},
+			fontFamily: {
+				sans: ['Inter', 'sans-serif'],
+				mono: ['Fira Code', 'monospace'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
