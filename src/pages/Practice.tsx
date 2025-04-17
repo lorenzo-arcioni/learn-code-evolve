@@ -1,4 +1,3 @@
-
 import MainLayout from "@/components/layout/MainLayout";
 import { Link } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
@@ -23,8 +22,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+interface Exercise {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: "Easy" | "Medium" | "Hard" | "Expert";
+  locked: boolean;
+}
+
+type Exercises = {
+  [key in "beginner" | "intermediate" | "advanced"]: Exercise[];
+};
+
 // In a real app, this would come from an API
-const exercises = {
+const exercises: Exercises = {
   beginner: [
     {
       id: "linear-regression",

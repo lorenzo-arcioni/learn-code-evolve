@@ -1,13 +1,14 @@
-
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, CheckCircle, PlayCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, DownloadCloud, RotateCcw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 // This would be fetched from the API in a real application
 const exerciseData = {
@@ -95,10 +96,29 @@ if __name__ == "__main__":
   },
 };
 
+interface TestResult {
+  id: number;
+  status: "passed" | "failed";
+  description: string;
+  message: string;
+}
+
+interface Submission {
+  id: number;
+  timestamp: string;
+  status: "passed" | "failed";
+  score: number;
+}
+
 const ExerciseDetail = () => {
   const { exerciseId } = useParams();
   const [code, setCode] = useState(exerciseData[exerciseId as keyof typeof exerciseData]?.startingCode || "");
-  const [result, setResult] = useState<null | { success: boolean; message: string }>(null);
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
+  const [submissions, setSubmissions] = useState<Submission[]>([
+    { id: 1, timestamp: "2024-04-17 10:30", status: "passed", score: 100 },
+    { id: 2, timestamp: "2024-04-17 10:15", status: "failed", score: 0 },
+  ]);
+
   const exercise = exerciseData[exerciseId as keyof typeof exerciseData] || {
     title: "Exercise Not Found",
     description: "This exercise does not exist or has been removed.",
@@ -109,48 +129,49 @@ const ExerciseDetail = () => {
   };
 
   const handleSubmit = () => {
-    // In a real application, this would send the code to the backend
-    setTimeout(() => {
-      if (code.length > 100) {
-        setResult({
-          success: true,
-          message: "All test cases passed successfully! Great job implementing linear regression from scratch.",
-        });
-      } else {
-        setResult({
-          success: false,
-          message: "Some test cases failed. Please check your implementation and try again.",
-        });
-      }
-    }, 1500);
+    // Mock test results - in a real app, this would come from the backend
+    setTestResults([
+      { id: 1, status: "passed", description: "Basic functionality", message: "All basic tests passed" },
+      { id: 2, status: "failed", description: "Edge cases", message: "Failed on input [0, 0, 0]" },
+    ]);
   };
 
-  const runCode = () => {
-    // In a real application, this would run the code in a sandbox
-    setTimeout(() => {
-      setResult({
-        success: true,
-        message: "Code executed. Output:\nSlope: 0.8, Intercept: 1.6\nPredictions: [2.4, 3.2, 4.0, 4.8, 5.6]\nR^2 Score: 0.57",
-      });
-    }, 1000);
+  const handleReset = () => {
+    setCode(exercise.startingCode);
+  };
+
+  const handleDownload = () => {
+    const blob = new Blob([code], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${exerciseId}-solution.py`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (
     <MainLayout>
       <div className="container py-6">
         <h1 className="text-3xl font-bold mb-4">{exercise.title}</h1>
-        <ResizablePanelGroup direction="horizontal" className="min-h-[600px] rounded-lg border">
-          <ResizablePanel defaultSize={40} minSize={30}>
-            <div className="h-full p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Instructions Panel */}
+          <Card className="w-full h-[800px] flex flex-col">
+            <CardHeader>
+              <CardTitle>Instructions</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1">
               <Tabs defaultValue="description" className="h-full flex flex-col">
                 <TabsList className="w-full justify-start mb-4">
                   <TabsTrigger value="description">Description</TabsTrigger>
                   <TabsTrigger value="hints">Hints</TabsTrigger>
-                  <TabsTrigger value="tests">Tests</TabsTrigger>
+                  <TabsTrigger value="submissions">Submissions</TabsTrigger>
                 </TabsList>
                 
-                <div className="flex-1 overflow-auto">
-                  <TabsContent value="description" className="mt-0 h-full">
+                <ScrollArea className="flex-1">
+                  <TabsContent value="description" className="mt-0">
                     <div className="space-y-4">
                       <p className="text-muted-foreground">{exercise.description}</p>
                       <div>
@@ -164,7 +185,7 @@ const ExerciseDetail = () => {
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="hints" className="mt-0 h-full">
+                  <TabsContent value="hints" className="mt-0">
                     <div className="space-y-4">
                       <h3 className="font-semibold">Helpful Hints:</h3>
                       <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
@@ -174,66 +195,111 @@ const ExerciseDetail = () => {
                       </ul>
                     </div>
                   </TabsContent>
-                  
-                  <TabsContent value="tests" className="mt-0 h-full">
+
+                  <TabsContent value="submissions" className="mt-0">
                     <div className="space-y-4">
-                      <h3 className="font-semibold">Test Cases:</h3>
-                      <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-                        {exercise.testCases.map((testCase, index) => (
-                          <li key={index}>{testCase}</li>
+                      <h3 className="font-semibold">Your Submissions:</h3>
+                      <div className="space-y-2">
+                        {submissions.map((submission) => (
+                          <div
+                            key={submission.id}
+                            className={cn(
+                              "p-4 rounded-lg",
+                              submission.status === "passed"
+                                ? "bg-green-50 border border-green-200"
+                                : "bg-red-50 border border-red-200"
+                            )}
+                          >
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm">
+                                {submission.timestamp}
+                              </span>
+                              <Badge
+                                className={cn(
+                                  submission.status === "passed"
+                                    ? "bg-green-500"
+                                    : "bg-red-500"
+                                )}
+                              >
+                                {submission.status} - Score: {submission.score}
+                              </Badge>
+                            </div>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   </TabsContent>
-                </div>
+                </ScrollArea>
               </Tabs>
-            </div>
-          </ResizablePanel>
-          
-          <ResizableHandle withHandle />
-          
-          <ResizablePanel defaultSize={60}>
-            <div className="h-full flex flex-col">
-              <div className="flex justify-between items-center p-4 border-b">
-                <h2 className="text-lg font-semibold">Code Editor</h2>
-                <div className="space-x-3">
-                  <Button variant="outline" size="sm" onClick={runCode} className="gap-1">
-                    <PlayCircle className="h-4 w-4" /> Run
-                  </Button>
-                  <Button size="sm" onClick={handleSubmit}>Submit Solution</Button>
-                </div>
-              </div>
-              
-              <div className="flex-1 overflow-hidden">
-                <textarea
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  className="font-mono text-sm w-full h-full p-4 bg-ml-code-bg text-ml-code-text resize-none focus:outline-none"
-                />
-              </div>
-              
-              {result && (
-                <div className="p-4 border-t">
-                  <Alert
-                    className={cn(
-                      result.success
-                        ? "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-100"
-                        : "border-red-200 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100"
-                    )}
+            </CardContent>
+          </Card>
+
+          {/* Code Editor Panel */}
+          <Card className="w-full h-[800px] flex flex-col">
+            <CardHeader className="flex-none border-b">
+              <div className="flex justify-between items-center">
+                <CardTitle>Code Editor</CardTitle>
+                <div className="space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleReset}
+                    className="gap-1"
                   >
-                    {result.success ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-                    <AlertTitle className="ml-2">
-                      {result.success ? "Success!" : "There were some issues"}
-                    </AlertTitle>
-                    <AlertDescription className="ml-2 mt-2 whitespace-pre-line">
-                      {result.message}
-                    </AlertDescription>
-                  </Alert>
+                    <RotateCcw className="h-4 w-4" />
+                    Reset
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownload}
+                    className="gap-1"
+                  >
+                    <DownloadCloud className="h-4 w-4" />
+                    Download
+                  </Button>
+                  <Button size="sm" onClick={handleSubmit}>
+                    Submit Solution
+                  </Button>
                 </div>
-              )}
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 p-0">
+              <textarea
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="font-mono text-sm w-full h-full p-4 bg-ml-code-bg text-ml-code-text resize-none focus:outline-none border-none"
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Test Results */}
+        {testResults.length > 0 && (
+          <div className="mt-6">
+            <h2 className="text-xl font-semibold mb-4">Test Results</h2>
+            <div className="space-y-4">
+              {testResults.map((result) => (
+                <Alert
+                  key={result.id}
+                  className={cn(
+                    result.status === "passed"
+                      ? "border-green-200 bg-green-50 text-green-900"
+                      : "border-red-200 bg-red-50 text-red-900"
+                  )}
+                >
+                  {result.status === "passed" ? (
+                    <CheckCircle className="h-4 w-4" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4" />
+                  )}
+                  <AlertTitle>{result.description}</AlertTitle>
+                  <AlertDescription>{result.message}</AlertDescription>
+                </Alert>
+              ))}
             </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+          </div>
+        )}
       </div>
     </MainLayout>
   );
