@@ -1,6 +1,7 @@
 
 import MainLayout from "@/components/layout/MainLayout";
 import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -10,10 +11,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Lock } from "lucide-react";
+import { AlertCircle, Lock, Search } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
+// In a real app, this would come from an API
 const exercises = {
   beginner: [
     {
@@ -86,7 +96,40 @@ const exercises = {
   ],
 };
 
+const topics = [
+  "All Topics",
+  "Linear Regression",
+  "Classification",
+  "Neural Networks",
+  "Deep Learning",
+  "NLP",
+  "Computer Vision",
+] as const;
+
 const Practice = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchQuery = searchParams.get("search") || "";
+  const selectedTopic = searchParams.get("topic") || "All Topics";
+
+  const handleSearch = (value: string) => {
+    searchParams.set("search", value);
+    setSearchParams(searchParams);
+  };
+
+  const handleTopicChange = (value: string) => {
+    searchParams.set("topic", value);
+    setSearchParams(searchParams);
+  };
+
+  const filterExercises = (exercises: typeof exercises[keyof typeof exercises]) => {
+    return exercises.filter((exercise) => {
+      const matchesSearch = exercise.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        exercise.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesTopic = selectedTopic === "All Topics" || exercise.title.includes(selectedTopic);
+      return matchesSearch && matchesTopic;
+    });
+  };
+
   return (
     <MainLayout>
       <div className="container py-12">
@@ -103,6 +146,30 @@ const Practice = () => {
           </Alert>
         </div>
 
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search exercises..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select value={selectedTopic} onValueChange={handleTopicChange}>
+            <SelectTrigger className="w-full md:w-[200px]">
+              <SelectValue placeholder="Select topic" />
+            </SelectTrigger>
+            <SelectContent>
+              {topics.map((topic) => (
+                <SelectItem key={topic} value={topic}>
+                  {topic}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <Tabs defaultValue="beginner" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="beginner">Beginner</TabsTrigger>
@@ -113,7 +180,7 @@ const Practice = () => {
           {(["beginner", "intermediate", "advanced"] as const).map((level) => (
             <TabsContent key={level} value={level} className="mt-0">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {exercises[level].map((exercise) => (
+                {filterExercises(exercises[level]).map((exercise) => (
                   <Card key={exercise.id} className={`card-hover ${exercise.locked ? 'opacity-80' : ''}`}>
                     <CardHeader>
                       <div className="flex items-start justify-between">

@@ -6,16 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, CheckCircle, PlayCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
 // This would be fetched from the API in a real application
 const exerciseData = {
   "linear-regression": {
     title: "Linear Regression Implementation",
-    description: "In this exercise, you will implement a simple linear regression model from scratch using NumPy. You'll create the necessary functions to compute the coefficients, make predictions, and evaluate the model's performance.",
+    description: "In this exercise, you will implement a simple linear regression model from scratch using NumPy.",
     instructions: [
       "Implement the `compute_coefficients` function to calculate the slope and intercept using the normal equation.",
       "Create a `predict` function that uses the coefficients to make predictions on new data.",
       "Implement the `compute_r_squared` function to evaluate your model's performance.",
+    ],
+    hints: [
+      "Remember that the normal equation is β = (X^T X)^(-1) X^T y",
+      "For prediction, use the formula y = mx + b",
+      "R² compares the model's predictions to the mean of the target variable",
     ],
     testCases: [
       "Test with a simple dataset where X = [1, 2, 3, 4, 5] and y = [2, 4, 5, 4, 6]",
@@ -96,13 +103,13 @@ const ExerciseDetail = () => {
     title: "Exercise Not Found",
     description: "This exercise does not exist or has been removed.",
     instructions: [],
+    hints: [],
     testCases: [],
     startingCode: "",
   };
 
   const handleSubmit = () => {
     // In a real application, this would send the code to the backend
-    // Here we're just simulating a response
     setTimeout(() => {
       if (code.length > 100) {
         setResult({
@@ -120,7 +127,6 @@ const ExerciseDetail = () => {
 
   const runCode = () => {
     // In a real application, this would run the code in a sandbox
-    // Here we're just simulating a response
     setTimeout(() => {
       setResult({
         success: true,
@@ -131,78 +137,103 @@ const ExerciseDetail = () => {
 
   return (
     <MainLayout>
-      <div className="container py-10">
-        <h1 className="text-3xl font-bold mb-6">{exercise.title}</h1>
-        
-        <Tabs defaultValue="description" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-3 mb-8">
-            <TabsTrigger value="description">Description</TabsTrigger>
-            <TabsTrigger value="instructions">Instructions</TabsTrigger>
-            <TabsTrigger value="tests">Test Cases</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="description" className="mt-0">
-            <p className="text-muted-foreground mb-6">
-              {exercise.description}
-            </p>
-          </TabsContent>
-          
-          <TabsContent value="instructions" className="mt-0">
-            <h3 className="font-semibold mb-4">Follow these steps:</h3>
-            <ol className="space-y-2 list-decimal pl-5 text-muted-foreground">
-              {exercise.instructions.map((instruction, index) => (
-                <li key={index} className="pl-1">{instruction}</li>
-              ))}
-            </ol>
-          </TabsContent>
-          
-          <TabsContent value="tests" className="mt-0">
-            <h3 className="font-semibold mb-4">Your solution will be tested against:</h3>
-            <ul className="space-y-2 list-disc pl-5 text-muted-foreground">
-              {exercise.testCases.map((testCase, index) => (
-                <li key={index} className="pl-1">{testCase}</li>
-              ))}
-            </ul>
-          </TabsContent>
-        </Tabs>
-        
-        <div className="mt-10">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Code Editor</h2>
-            <div className="space-x-3">
-              <Button variant="outline" size="sm" onClick={runCode} className="gap-1">
-                <PlayCircle className="h-4 w-4" /> Run
-              </Button>
-              <Button size="sm" onClick={handleSubmit}>Submit Solution</Button>
+      <div className="container py-6">
+        <h1 className="text-3xl font-bold mb-4">{exercise.title}</h1>
+        <ResizablePanelGroup direction="horizontal" className="min-h-[600px] rounded-lg border">
+          <ResizablePanel defaultSize={40} minSize={30}>
+            <div className="h-full p-6">
+              <Tabs defaultValue="description" className="h-full flex flex-col">
+                <TabsList className="w-full justify-start mb-4">
+                  <TabsTrigger value="description">Description</TabsTrigger>
+                  <TabsTrigger value="hints">Hints</TabsTrigger>
+                  <TabsTrigger value="tests">Tests</TabsTrigger>
+                </TabsList>
+                
+                <div className="flex-1 overflow-auto">
+                  <TabsContent value="description" className="mt-0 h-full">
+                    <div className="space-y-4">
+                      <p className="text-muted-foreground">{exercise.description}</p>
+                      <div>
+                        <h3 className="font-semibold mb-2">Instructions:</h3>
+                        <ol className="list-decimal pl-5 space-y-2 text-muted-foreground">
+                          {exercise.instructions.map((instruction, index) => (
+                            <li key={index}>{instruction}</li>
+                          ))}
+                        </ol>
+                      </div>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="hints" className="mt-0 h-full">
+                    <div className="space-y-4">
+                      <h3 className="font-semibold">Helpful Hints:</h3>
+                      <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                        {exercise.hints.map((hint, index) => (
+                          <li key={index}>{hint}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="tests" className="mt-0 h-full">
+                    <div className="space-y-4">
+                      <h3 className="font-semibold">Test Cases:</h3>
+                      <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                        {exercise.testCases.map((testCase, index) => (
+                          <li key={index}>{testCase}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </TabsContent>
+                </div>
+              </Tabs>
             </div>
-          </div>
+          </ResizablePanel>
           
-          <div className="border rounded-lg overflow-hidden bg-ml-code-bg">
-            <textarea
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="font-mono text-ml-code-text w-full p-4 bg-transparent min-h-[500px] resize-y focus:outline-none"
-            />
-          </div>
+          <ResizableHandle withHandle />
           
-          {result && (
-            <Alert
-              className={`mt-6 ${
-                result.success
-                  ? "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-100"
-                  : "border-red-200 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100"
-              }`}
-            >
-              {result.success ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-              <AlertTitle className="ml-2">
-                {result.success ? "Success!" : "There were some issues"}
-              </AlertTitle>
-              <AlertDescription className="ml-2 mt-2 whitespace-pre-line">
-                {result.message}
-              </AlertDescription>
-            </Alert>
-          )}
-        </div>
+          <ResizablePanel defaultSize={60}>
+            <div className="h-full flex flex-col">
+              <div className="flex justify-between items-center p-4 border-b">
+                <h2 className="text-lg font-semibold">Code Editor</h2>
+                <div className="space-x-3">
+                  <Button variant="outline" size="sm" onClick={runCode} className="gap-1">
+                    <PlayCircle className="h-4 w-4" /> Run
+                  </Button>
+                  <Button size="sm" onClick={handleSubmit}>Submit Solution</Button>
+                </div>
+              </div>
+              
+              <div className="flex-1 overflow-hidden">
+                <textarea
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="font-mono text-sm w-full h-full p-4 bg-ml-code-bg text-ml-code-text resize-none focus:outline-none"
+                />
+              </div>
+              
+              {result && (
+                <div className="p-4 border-t">
+                  <Alert
+                    className={cn(
+                      result.success
+                        ? "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-100"
+                        : "border-red-200 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100"
+                    )}
+                  >
+                    {result.success ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                    <AlertTitle className="ml-2">
+                      {result.success ? "Success!" : "There were some issues"}
+                    </AlertTitle>
+                    <AlertDescription className="ml-2 mt-2 whitespace-pre-line">
+                      {result.message}
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
     </MainLayout>
   );
