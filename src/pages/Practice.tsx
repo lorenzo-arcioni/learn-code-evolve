@@ -1,3 +1,4 @@
+
 import MainLayout from "@/components/layout/MainLayout";
 import { Link } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
@@ -30,9 +31,9 @@ interface Exercise {
   locked: boolean;
 }
 
-type Exercises = {
-  [key in "beginner" | "intermediate" | "advanced"]: Exercise[];
-};
+// Fixed type definition to avoid self-reference
+type ExerciseLevel = "beginner" | "intermediate" | "advanced";
+type Exercises = Record<ExerciseLevel, Exercise[]>;
 
 // In a real app, this would come from an API
 const exercises: Exercises = {
