@@ -1,8 +1,8 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import router
-from .database import client
+from routes import router
+from database import client
 
 # Initialize FastAPI
 app = FastAPI(title="ML Academy API")

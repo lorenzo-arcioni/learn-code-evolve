@@ -1,4 +1,3 @@
-
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import Depends, HTTPException, status
@@ -6,8 +5,9 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 import os
-from .models import UserInDB, TokenData
-from .database import db
+from models import UserInDB, TokenData
+from database import db
+from bson import ObjectId  # Import per la gestione di ObjectId
 
 # JWT Authentication settings
 SECRET_KEY = os.getenv("JWT_SECRET", "supersecretkey")
@@ -18,19 +18,22 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+# Funzioni per la gestione delle password
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
     return pwd_context.hash(password)
 
+# Funzione per recuperare un utente dal database
 async def get_user(username: str):
     user = await db["users"].find_one({"username": username})
     if user:
-        user["id"] = str(user["_id"])  # Convert ObjectId to string
+        user["_id"] = str(user["_id"])  # Convert ObjectId to string
         return UserInDB(**user)
     return None
 
+# Funzione per autenticare l'utente
 async def authenticate_user(username: str, password: str):
     user = await get_user(username)
     if not user:
@@ -39,16 +42,18 @@ async def authenticate_user(username: str, password: str):
         return False
     return user
 
+# Funzione per creare il token di accesso JWT
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)  # Usa il valore di default
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+# Funzione per ottenere l'utente corrente dal token
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -68,6 +73,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return user
 
+# Funzione per ottenere l'utente attivo
 async def get_current_active_user(current_user: UserInDB = Depends(get_current_user)):
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")

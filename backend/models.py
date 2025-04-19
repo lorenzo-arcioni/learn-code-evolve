@@ -1,37 +1,45 @@
-
 from datetime import datetime
-from typing import List, Optional
-from pydantic import BaseModel, Field, GetJsonSchemaHandler
-from typing_extensions import Annotated
-from typing import Any
-from pydantic.json_schema import JsonSchemaValue
+from typing import List, Optional, Any
+from pydantic import BaseModel, Field, GetCoreSchemaHandler
 from bson import ObjectId
+from pydantic_core import core_schema
 
-class PyObjectId(str):
+# ----------------------
+# ObjectId Handler
+# ----------------------
+
+class PyObjectId(ObjectId):
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-        
+    def __get_pydantic_core_schema__(cls, _source_type: Any, handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
+        return core_schema.no_info_after_validator_function(
+            cls.validate,
+            core_schema.str_schema()
+        )
+
     @classmethod
-    def validate(cls, v):
-        if not ObjectId.is_valid(v):
-            raise ValueError("Invalid ObjectId")
-        return str(v)
-        
+    def validate(cls, v: Any) -> "PyObjectId":
+        if isinstance(v, ObjectId):
+            return cls(v)
+        if isinstance(v, str) and ObjectId.is_valid(v):
+            return cls(ObjectId(v))
+        raise ValueError("Invalid ObjectId")
+
     @classmethod
-    def __get_pydantic_json_schema__(
-        cls, _: Any, schema_handler: GetJsonSchemaHandler
-    ) -> JsonSchemaValue:
+    def __get_pydantic_json_schema__(cls, core_schema, handler):
         return {"type": "string"}
+
+# ----------------------
+# User Models
+# ----------------------
 
 class UserBase(BaseModel):
     username: str
     email: str
     full_name: Optional[str] = None
-    
+
 class UserCreate(UserBase):
     password: str
-    
+
 class UserInDB(UserBase):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     hashed_password: str
@@ -39,20 +47,26 @@ class UserInDB(UserBase):
     solved_exercises: List[str] = []
     points: int = 0
     is_active: bool = True
-    
-    class Config:
-        populate_by_name = True
-        json_encoders = {ObjectId: str}
-        arbitrary_types_allowed = True
+
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str}
+    }
 
 class User(UserBase):
     id: str
     points: int
     solved_exercises: List[str]
-    
-    class Config:
-        populate_by_name = True
-        json_encoders = {ObjectId: str}
+
+    model_config = {
+        "populate_by_name": True,
+        "json_encoders": {ObjectId: str}
+    }
+
+# ----------------------
+# Token Models
+# ----------------------
 
 class Token(BaseModel):
     access_token: str
@@ -61,12 +75,16 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Optional[str] = None
 
+# ----------------------
+# Exercise Models
+# ----------------------
+
 class ExerciseBase(BaseModel):
     title: str
     description: str
     difficulty: str
     content: str
-    
+
 class ExerciseCreate(ExerciseBase):
     pass
 
@@ -74,28 +92,38 @@ class Exercise(ExerciseBase):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     locked: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Config:
-        populate_by_name = True
-        json_encoders = {ObjectId: str}
-        arbitrary_types_allowed = True
+
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str}
+    }
+
+# ----------------------
+# Theory Models
+# ----------------------
 
 class TheoryBase(BaseModel):
     title: str
     content: str
     category: str
-    
+
 class TheoryCreate(TheoryBase):
     pass
 
 class Theory(TheoryBase):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Config:
-        populate_by_name = True
-        json_encoders = {ObjectId: str}
-        arbitrary_types_allowed = True
+
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str}
+    }
+
+# ----------------------
+# Leaderboard
+# ----------------------
 
 class LeaderboardEntry(BaseModel):
     username: str

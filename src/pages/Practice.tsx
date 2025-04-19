@@ -6,9 +6,13 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
 
+// Importa authApi
+import { authApi } from '@/services/api';  // Assicurati che il percorso sia corretto
+
 const Practice = () => {
   const { toast } = useToast();
-  
+
+  // Query per ottenere gli esercizi
   const { data: exercises, isLoading: exercisesLoading } = useQuery({
     queryKey: ['exercises'],
     queryFn: exerciseApi.getAllExercises,
@@ -23,9 +27,10 @@ const Practice = () => {
     }
   });
 
+  // Query per ottenere i progressi dell'utente
   const { data: userProgress, isLoading: progressLoading } = useQuery({
     queryKey: ['user-progress'],
-    queryFn: authApi.getUserProgress,
+    queryFn: authApi.getUserProgress,  // Usa authApi correttamente
     meta: {
       onError: (error: Error) => {
         toast({
@@ -73,3 +78,4 @@ const Practice = () => {
 };
 
 export default Practice;
+
