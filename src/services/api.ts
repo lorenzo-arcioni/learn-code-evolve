@@ -27,11 +27,12 @@ api.interceptors.request.use(
 // API functions for authentication
 export const authApi = {
   login: async (username: string, password: string) => {
-    const formData = new FormData();
+    // Use FormData for login as required by OAuth2 password flow
+    const formData = new URLSearchParams();
     formData.append('username', username);
     formData.append('password', password);
     
-    const response = await api.post('/token', formData, {
+    const response = await api.post('/token', formData.toString(), {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },

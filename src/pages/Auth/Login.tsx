@@ -29,12 +29,17 @@ const Login = () => {
       navigate("/");
     },
     onError: (error: any) => {
+      console.error("Login error:", error);
       toast.error(error.response?.data?.detail || "Login failed. Please try again.");
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email || !password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
     loginMutation.mutate();
   };
 

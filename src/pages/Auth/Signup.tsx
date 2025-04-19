@@ -28,7 +28,7 @@ const Signup = () => {
 
   const signupMutation = useMutation({
     mutationFn: () => authApi.register({
-      username: email,
+      username: email, // Using email as username
       email: email,
       password: password,
       full_name: `${firstName} ${lastName}`.trim(),
@@ -36,20 +36,38 @@ const Signup = () => {
     onSuccess: async () => {
       toast.success("Account created successfully!");
       // Login automatically after successful registration
-      await authApi.login(email, password);
-      navigate("/");
+      try {
+        await authApi.login(email, password);
+        navigate("/");
+      } catch (error) {
+        console.error("Auto-login error:", error);
+        toast.error("Account created, but login failed. Please log in manually.");
+        navigate("/login");
+      }
     },
     onError: (error: any) => {
+      console.error("Registration error:", error);
       toast.error(error.response?.data?.detail || "Registration failed. Please try again.");
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!firstName || !lastName || !email || !password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    
     if (!termsAccepted) {
       toast.error("Please accept the terms and conditions");
       return;
     }
+    
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters long");
+      return;
+    }
+    
     signupMutation.mutate();
   };
 
@@ -108,7 +126,7 @@ const Signup = () => {
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Password must be at least 8 characters long and include a number and a special character
+                  Password must be at least 8 characters long
                 </p>
               </div>
               <div className="flex items-center space-x-2">

@@ -1,15 +1,14 @@
-
 import os
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
-from typing import List, Optional, Any, ClassVar
+from typing import List, Optional, Any, ClassVar, Dict, Annotated
 from typing_extensions import Annotated
 from dotenv import load_dotenv
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from pydantic import BaseModel, Field, GetJsonSchemaHandler
+from pydantic import BaseModel, Field, GetJsonSchemaHandler, json_schema
 from pydantic.json_schema import JsonSchemaValue
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
@@ -44,17 +43,17 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# Helper functions for ObjectId handling - modernizzato per Pydantic v2
-class PyObjectId(ObjectId):
+# Helper class for ObjectId handling in Pydantic v2
+class PyObjectId(str):
     @classmethod
     def __get_validators__(cls):
         yield cls.validate
-
+        
     @classmethod
     def validate(cls, v):
         if not ObjectId.is_valid(v):
             raise ValueError("Invalid ObjectId")
-        return ObjectId(v)
+        return str(v)
         
     @classmethod
     def __get_pydantic_json_schema__(
@@ -72,7 +71,7 @@ class UserCreate(UserBase):
     password: str
     
 class UserInDB(UserBase):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     solved_exercises: List[str] = []
@@ -152,7 +151,9 @@ def get_password_hash(password):
 async def get_user(username: str):
     user = await db["users"].find_one({"username": username})
     if user:
+        user["id"] = str(user["_id"])  # Convert ObjectId to string
         return UserInDB(**user)
+    return None
 
 async def authenticate_user(username: str, password: str):
     user = await get_user(username)
