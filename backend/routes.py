@@ -187,4 +187,3 @@ async def get_user_progress(current_user: UserInDB = Depends(get_current_active_
         "progress_percentage": (user_solved / total_exercises * 100) if total_exercises > 0 else 0,
         "points": current_user.points
     }
-

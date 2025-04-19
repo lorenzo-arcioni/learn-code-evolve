@@ -102,4 +102,3 @@ class LeaderboardEntry(BaseModel):
     score: int
     problems_solved: int
     achievements: List[str]
-

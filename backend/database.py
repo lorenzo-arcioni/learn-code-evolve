@@ -13,4 +13,3 @@ DATABASE_NAME = os.getenv("DATABASE_NAME", "ml_academy")
 # Initialize database connection
 client = AsyncIOMotorClient(MONGODB_URI)
 db = client[DATABASE_NAME]
-
