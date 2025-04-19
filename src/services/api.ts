@@ -27,27 +27,37 @@ api.interceptors.request.use(
 // API functions for authentication
 export const authApi = {
   login: async (username: string, password: string) => {
-    // Use FormData for login as required by OAuth2 password flow
-    const formData = new URLSearchParams();
-    formData.append('username', username);
-    formData.append('password', password);
-    
-    const response = await api.post('/token', formData.toString(), {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
-    
-    if (response.data.access_token) {
-      localStorage.setItem('ml_academy_token', response.data.access_token);
+    try {
+      // Use FormData for login as required by OAuth2 password flow
+      const formData = new URLSearchParams();
+      formData.append('username', username);
+      formData.append('password', password);
+      
+      const response = await api.post('/token', formData.toString(), {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+      
+      if (response.data.access_token) {
+        localStorage.setItem('ml_academy_token', response.data.access_token);
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
-    
-    return response.data;
   },
   
   register: async (userData: { username: string; email: string; password: string; full_name?: string }) => {
-    const response = await api.post('/users/', userData);
-    return response.data;
+    try {
+      const response = await api.post('/users/', userData);
+      return response.data;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
   },
   
   logout: () => {
