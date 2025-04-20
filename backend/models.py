@@ -86,19 +86,63 @@ class TokenData(BaseModel):
 # Exercise Models
 # ----------------------
 
-# ... keep existing code (Exercise models)
+class ExerciseBase(BaseModel):
+    title: str
+    description: str
+    difficulty: str
+    content: str
+    
+class ExerciseCreate(ExerciseBase):
+    pass
+
+class Exercise(ExerciseBase):
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    locked: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    class Config:
+        populate_by_name = True
+        json_encoders = {ObjectId: str}
+        arbitrary_types_allowed = True
+
+class TheoryBase(BaseModel):
+    title: str
+    content: str
+    category: str
+    
+class TheoryCreate(TheoryBase):
+    pass
 
 # ----------------------
 # Theory Models
 # ----------------------
 
-# ... keep existing code (Theory models)
+class TheoryBase(BaseModel):
+    title: str
+    content: str
+    category: str
+    
+class TheoryCreate(TheoryBase):
+    pass
+
+class Theory(TheoryBase):
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    class Config:
+        populate_by_name = True
+        json_encoders = {ObjectId: str}
+        arbitrary_types_allowed = True
 
 # ----------------------
 # Leaderboard
 # ----------------------
 
-# ... keep existing code (LeaderboardEntry model)
+class LeaderboardEntry(BaseModel):
+    username: str
+    score: int
+    problems_solved: int
+    achievements: List[str]
 
 # ----------------------
 # Avatar Upload
