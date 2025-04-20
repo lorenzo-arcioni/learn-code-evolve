@@ -1,3 +1,4 @@
+
 import axios from 'axios';
 
 // Create an axios instance for the FastAPI backend
@@ -124,6 +125,16 @@ export const theoryApi = {
   
   getTheoriesByCategory: async (category: string) => {
     const response = await api.get(`/theory/category/${category}`);
+    return response.data;
+  },
+  
+  getTheoryStructure: async () => {
+    const response = await api.get('/theory/structure');
+    return response.data;
+  },
+  
+  getTheoryContent: async (path: string) => {
+    const response = await api.get(`/theory/content/${path}`);
     return response.data;
   },
 };
