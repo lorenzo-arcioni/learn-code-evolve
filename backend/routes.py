@@ -145,29 +145,42 @@ async def get_exercise(exercise_id: str):
     return Exercise(**exercise)
 
 # Theory routes
-@router.post("/theory/", response_model=Theory)
-async def create_theory(theory: TheoryCreate, current_user: UserInDB = Depends(get_current_active_user)):
-    new_theory = Theory(**theory.dict())
-    result = await db["theory"].insert_one(new_theory.dict(by_alias=True))
-    created_theory = await db["theory"].find_one({"_id": result.inserted_id})
-    return Theory(**created_theory)
+@router.get("/theory/structure")
+async def get_theory_structure():
+    """
+    Restituisce la struttura ad albero di tutto ciò che c'è
+    in backend/content/theory/, sotto forma di:
+    {
+      "intro": { subcategories: {...}, files: [{ name, path }, …] },
+      "supervised": { … },
+      …
+    }
+    """
+    from markdown_utils import CONTENT_DIR, parse_markdown_content, build_directory_tree
+    # build_directory_tree deve tornare esattamente questo formato
+    return build_directory_tree(os.path.join(CONTENT_DIR, "theory"))
 
-@router.get("/theory/", response_model=List[Theory])
-async def get_theories():
-    theories = await db["theory"].find().to_list(100)
-    return [Theory(**theory) for theory in theories]
+@router.get("/content/theory/{path:path}")
+async def get_theory_content(path: str):
+    """
+    Legge il file Markdown corrispondente a `path`
+    (es. 'intro/01-what-is-machine-learning') e ne restituisce
+    {"title": "...", "content": "<h1>…</h1>…"} via parse_markdown_content.
+    """
+    from markdown_utils import CONTENT_DIR, parse_markdown_content, build_directory_tree
+    # Normalizza e costruisci il percorso al .md
+    full_path = os.path.normpath(
+        os.path.join(CONTENT_DIR, "theory", f"{path}.md")
+    )
+    # Blocca directory traversal
+    if not full_path.startswith(os.path.join(CONTENT_DIR, "theory")):
+        raise HTTPException(400, "Invalid path")
+    if not os.path.exists(full_path):
+        raise HTTPException(404, f"Content not found: {path}")
+    # parse_markdown_content legge, converte e ritorna dict {title, content}
+    return parse_markdown_content(full_path)
 
-@router.get("/theory/{theory_id}", response_model=Theory)
-async def get_theory(theory_id: str):
-    theory = await db["theory"].find_one({"_id": ObjectId(theory_id)})
-    if not theory:
-        raise HTTPException(status_code=404, detail="Theory not found")
-    return Theory(**theory)
-
-@router.get("/theory/category/{category}", response_model=List[Theory])
-async def get_theories_by_category(category: str):
-    theories = await db["theory"].find({"category": category}).to_list(100)
-    return [Theory(**theory) for theory in theories]
+# Leaderboard routes
 
 @router.get("/leaderboard/", response_model=List[LeaderboardEntry])
 async def get_leaderboard():
@@ -196,6 +209,8 @@ async def get_leaderboard():
         )
     
     return leaderboard
+
+# Exercises routes
 
 @router.post("/exercises/{exercise_id}/submit")
 async def submit_solution(
@@ -256,28 +271,3 @@ async def get_user_progress(current_user: UserInDB = Depends(get_current_active_
         "points": current_user.points,
         "difficulty_stats": difficulty_stats
     }
-
-@router.get("/theory/structure")
-async def get_theory_structure():
-    """Get the structure of theory content directory."""
-    from markdown_utils import build_directory_tree
-    return build_directory_tree()
-
-@router.get("/theory/content/{path:path}")
-async def get_theory_content(path: str):
-    """Get the content of a specific theory file."""
-    from markdown_utils import CONTENT_DIR, parse_markdown_content
-    import os
-    
-    # Normalize and secure the path
-    full_path = os.path.join(CONTENT_DIR, f"{path}.md")
-    full_path = os.path.normpath(full_path)
-    
-    # Security check to prevent directory traversal
-    if not full_path.startswith(CONTENT_DIR):
-        raise HTTPException(status_code=400, detail="Invalid path")
-    
-    if not os.path.exists(full_path):
-        raise HTTPException(status_code=404, detail="Content not found")
-        
-    return parse_markdown_content(full_path)

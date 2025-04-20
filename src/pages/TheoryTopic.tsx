@@ -258,7 +258,7 @@ const TheoryTopic = () => {
         }
         
         try {
-          const response = await api.get(`/theory/content/${contentPath}`);
+          const response = await api.get(`/content/theory/${contentPath}`);
           setContent(response.data);
           setError(null);
         } catch (err) {
