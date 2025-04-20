@@ -1,3 +1,4 @@
+
 from datetime import datetime
 from typing import List, Optional, Any
 from pydantic import BaseModel, Field, GetCoreSchemaHandler
@@ -36,9 +37,15 @@ class UserBase(BaseModel):
     username: str
     email: str
     full_name: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
+
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 class UserInDB(UserBase):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
@@ -79,54 +86,23 @@ class TokenData(BaseModel):
 # Exercise Models
 # ----------------------
 
-class ExerciseBase(BaseModel):
-    title: str
-    description: str
-    difficulty: str
-    content: str
-
-class ExerciseCreate(ExerciseBase):
-    pass
-
-class Exercise(ExerciseBase):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    locked: bool = False
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    model_config = {
-        "populate_by_name": True,
-        "arbitrary_types_allowed": True,
-        "json_encoders": {ObjectId: str}
-    }
+# ... keep existing code (Exercise models)
 
 # ----------------------
 # Theory Models
 # ----------------------
 
-class TheoryBase(BaseModel):
-    title: str
-    content: str
-    category: str
-
-class TheoryCreate(TheoryBase):
-    pass
-
-class Theory(TheoryBase):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    model_config = {
-        "populate_by_name": True,
-        "arbitrary_types_allowed": True,
-        "json_encoders": {ObjectId: str}
-    }
+# ... keep existing code (Theory models)
 
 # ----------------------
 # Leaderboard
 # ----------------------
 
-class LeaderboardEntry(BaseModel):
-    username: str
-    score: int
-    problems_solved: int
-    achievements: List[str]
+# ... keep existing code (LeaderboardEntry model)
+
+# ----------------------
+# Avatar Upload
+# ----------------------
+
+class AvatarResponse(BaseModel):
+    avatar_url: str

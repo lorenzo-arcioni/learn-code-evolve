@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 
 // Create an axios instance for the FastAPI backend
@@ -71,6 +70,24 @@ export const authApi = {
   
   getUserProgress: async () => {
     const response = await api.get('/users/me/progress');
+    return response.data;
+  },
+  
+  updateProfile: async (profileData: { full_name?: string; email?: string }) => {
+    const response = await api.put('/users/me', profileData);
+    return response.data;
+  },
+  
+  uploadAvatar: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await api.post('/users/me/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
     return response.data;
   },
 };

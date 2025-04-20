@@ -1,5 +1,5 @@
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -9,9 +9,45 @@ import {
 } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useState, useEffect } from "react";
+import { authApi } from "@/services/api";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { User, Settings, LogOut } from "lucide-react";
 
 const Header = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem("ml_academy_token");
+    if (token) {
+      // Fetch user data
+      authApi.getCurrentUser()
+        .then(userData => {
+          setUser(userData);
+          setIsLoading(false);
+        })
+        .catch(error => {
+          console.error("Error fetching user:", error);
+          setIsLoading(false);
+        });
+    } else {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    authApi.logout();
+    setUser(null);
+    navigate("/login");
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -24,32 +60,88 @@ const Header = () => {
         </Link>
 
         {isMobile ? (
-          <MobileNav />
+          <MobileNav user={user} isLoading={isLoading} handleLogout={handleLogout} />
         ) : (
-          <nav className="flex items-center gap-6">
-            <Link to="/theory" className="nav-link">
-              Theory
-            </Link>
-            <Link to="/practice" className="nav-link">
-              Practice
-            </Link>
-            <Link to="/about" className="nav-link">
-              About
-            </Link>
-            <Button asChild variant="secondary" className="ml-4">
-              <Link to="/login">Log in</Link>
-            </Button>
-            <Button asChild>
-              <Link to="/signup">Sign up</Link>
-            </Button>
-          </nav>
+          <DesktopNav user={user} isLoading={isLoading} handleLogout={handleLogout} />
         )}
       </div>
     </header>
   );
 };
 
-const MobileNav = () => {
+const DesktopNav = ({ user, isLoading, handleLogout }: { user: any, isLoading: boolean, handleLogout: () => void }) => {
+  return (
+    <nav className="flex items-center gap-6">
+      <Link to="/theory" className="nav-link">
+        Theory
+      </Link>
+      <Link to="/practice" className="nav-link">
+        Practice
+      </Link>
+      <Link to="/leaderboard" className="nav-link">
+        Leaderboard
+      </Link>
+      <Link to="/about" className="nav-link">
+        About
+      </Link>
+      
+      {isLoading ? (
+        // Show a loading state for the auth buttons
+        <div className="w-20 h-9 bg-gray-200 animate-pulse rounded-md ml-4"></div>
+      ) : user ? (
+        // Show user avatar with dropdown
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="rounded-full ml-4 p-0 h-9 w-9 overflow-hidden">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={user.avatar_url ? `http://localhost:8000${user.avatar_url}` : undefined} />
+                <AvatarFallback>
+                  {user.username ? user.username.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-2" align="end">
+            <div className="p-2 border-b mb-2">
+              <p className="font-medium">{user.full_name || user.username}</p>
+              <p className="text-xs text-muted-foreground">{user.email}</p>
+            </div>
+            <div className="grid gap-1">
+              <Button variant="ghost" className="justify-start" asChild>
+                <Link to="/profile" className="flex items-center">
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </Link>
+              </Button>
+              <Button variant="ghost" className="justify-start" asChild>
+                <Link to="/profile?tab=settings" className="flex items-center">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
+              </Button>
+              <Button variant="ghost" className="justify-start text-red-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      ) : (
+        // Show login and signup buttons
+        <>
+          <Button asChild variant="secondary" className="ml-4">
+            <Link to="/login">Log in</Link>
+          </Button>
+          <Button asChild>
+            <Link to="/signup">Sign up</Link>
+          </Button>
+        </>
+      )}
+    </nav>
+  );
+};
+
+const MobileNav = ({ user, isLoading, handleLogout }: { user: any, isLoading: boolean, handleLogout: () => void }) => {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -59,6 +151,21 @@ const MobileNav = () => {
       </SheetTrigger>
       <SheetContent side="right">
         <nav className="flex flex-col gap-4 mt-8">
+          {user && (
+            <div className="flex items-center space-x-4 mb-4 pb-4 border-b">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={user.avatar_url ? `http://localhost:8000${user.avatar_url}` : undefined} />
+                <AvatarFallback>
+                  {user.username ? user.username.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium">{user.full_name || user.username}</p>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
+              </div>
+            </div>
+          )}
+          
           <SheetClose asChild>
             <Link to="/theory" className="nav-link">
               Theory
@@ -70,20 +177,61 @@ const MobileNav = () => {
             </Link>
           </SheetClose>
           <SheetClose asChild>
+            <Link to="/leaderboard" className="nav-link">
+              Leaderboard
+            </Link>
+          </SheetClose>
+          <SheetClose asChild>
             <Link to="/about" className="nav-link">
               About
             </Link>
           </SheetClose>
-          <SheetClose asChild>
-            <Button asChild variant="secondary" className="w-full mt-4">
-              <Link to="/login">Log in</Link>
-            </Button>
-          </SheetClose>
-          <SheetClose asChild>
-            <Button asChild className="w-full mt-2">
-              <Link to="/signup">Sign up</Link>
-            </Button>
-          </SheetClose>
+          
+          {isLoading ? (
+            <div className="w-full h-10 bg-gray-200 animate-pulse rounded-md mt-4"></div>
+          ) : user ? (
+            <>
+              <SheetClose asChild>
+                <Button asChild variant="outline" className="w-full mt-2 justify-start">
+                  <Link to="/profile" className="flex items-center">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                </Button>
+              </SheetClose>
+              <SheetClose asChild>
+                <Button asChild variant="outline" className="w-full mt-2 justify-start">
+                  <Link to="/profile?tab=settings" className="flex items-center">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
+                </Button>
+              </SheetClose>
+              <SheetClose asChild>
+                <Button 
+                  variant="destructive" 
+                  className="w-full mt-2" 
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </SheetClose>
+            </>
+          ) : (
+            <>
+              <SheetClose asChild>
+                <Button asChild variant="secondary" className="w-full mt-4">
+                  <Link to="/login">Log in</Link>
+                </Button>
+              </SheetClose>
+              <SheetClose asChild>
+                <Button asChild className="w-full mt-2">
+                  <Link to="/signup">Sign up</Link>
+                </Button>
+              </SheetClose>
+            </>
+          )}
         </nav>
       </SheetContent>
     </Sheet>

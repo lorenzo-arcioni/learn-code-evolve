@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Link, useNavigate } from "react-router-dom";
@@ -22,7 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { authApi } from "@/services/api";  // Assicurati di avere il modulo authApi
+import { authApi } from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
 
 interface Exercise {
   id: string;
@@ -59,16 +61,31 @@ const Practice = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
   const selectedTopic = searchParams.get("topic") || "All Topics";
-  const [isAuthenticated, setIsAuthenticated] = useState(false);  // Stato per verificare se l'utente è autenticato
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Controlla se il token esiste in localStorage per determinare se l'utente è autenticato
-    const token = localStorage.getItem("ml_academy_token");
-    if (token) {
-      setIsAuthenticated(true);
-    }
-  }, []);
+  // Check authentication status using React Query
+  const { data: isAuthenticated = false, isLoading } = useQuery({
+    queryKey: ['auth-status'],
+    queryFn: async () => {
+      try {
+        const token = localStorage.getItem("ml_academy_token");
+        if (!token) return false;
+        
+        await authApi.getCurrentUser();
+        return true;
+      } catch (error) {
+        console.error("Auth check error:", error);
+        return false;
+      }
+    },
+  });
+
+  // Get user progress if authenticated
+  const { data: progress } = useQuery({
+    queryKey: ['user-progress'],
+    queryFn: authApi.getUserProgress,
+    enabled: isAuthenticated,
+  });
 
   const handleSearch = (value: string) => {
     searchParams.set("search", value);
@@ -98,8 +115,33 @@ const Practice = () => {
             Apply your knowledge with hands-on coding exercises.
           </p>
   
-          {/* Mostra il banner solo se non autenticato */}
-          {!isAuthenticated && (
+          {isAuthenticated && progress && (
+            <div className="mt-6 p-4 border rounded-lg bg-primary/5">
+              <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
+                <div>
+                  <h3 className="font-medium">Your Progress</h3>
+                  <p className="text-sm text-muted-foreground">
+                    You've completed {progress.solved_exercises} out of {progress.total_exercises} exercises
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex flex-col items-center">
+                    <span className="text-lg font-bold text-primary">{Math.round(progress.progress_percentage)}%</span>
+                    <span className="text-xs text-muted-foreground">Progress</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-lg font-bold text-primary">{progress.points}</span>
+                    <span className="text-xs text-muted-foreground">Points</span>
+                  </div>
+                  <Button variant="outline" onClick={() => navigate('/profile')}>
+                    View Profile
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+  
+          {!isAuthenticated && !isLoading && (
             <Alert className="mt-6 border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
               <AlertCircle className="h-4 w-4 mr-2" />
               <AlertDescription>
@@ -200,5 +242,8 @@ const Practice = () => {
     </MainLayout>
   );
 };
+
+// Add missing Button component import
+import { Button } from "@/components/ui/button";
 
 export default Practice;

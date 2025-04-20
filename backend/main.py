@@ -1,6 +1,8 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 from routes import router
 from database import client
 
@@ -15,6 +17,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Create uploads directory if it doesn't exist
+os.makedirs("uploads/avatars", exist_ok=True)
+
+# Serve static files
+app.mount("/avatars", StaticFiles(directory="uploads/avatars"), name="avatars")
 
 # Include routers
 app.include_router(router)
