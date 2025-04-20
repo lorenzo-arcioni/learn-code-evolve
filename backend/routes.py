@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
@@ -257,3 +256,28 @@ async def get_user_progress(current_user: UserInDB = Depends(get_current_active_
         "points": current_user.points,
         "difficulty_stats": difficulty_stats
     }
+
+@router.get("/theory/structure")
+async def get_theory_structure():
+    """Get the structure of theory content directory."""
+    from markdown_utils import build_directory_tree
+    return build_directory_tree()
+
+@router.get("/theory/content/{path:path}")
+async def get_theory_content(path: str):
+    """Get the content of a specific theory file."""
+    from markdown_utils import CONTENT_DIR, parse_markdown_content
+    import os
+    
+    # Normalize and secure the path
+    full_path = os.path.join(CONTENT_DIR, f"{path}.md")
+    full_path = os.path.normpath(full_path)
+    
+    # Security check to prevent directory traversal
+    if not full_path.startswith(CONTENT_DIR):
+        raise HTTPException(status_code=400, detail="Invalid path")
+    
+    if not os.path.exists(full_path):
+        raise HTTPException(status_code=404, detail="Content not found")
+        
+    return parse_markdown_content(full_path)
