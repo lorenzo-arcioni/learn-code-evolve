@@ -138,7 +138,7 @@
   }
 
   .code-block {
-    @apply font-mono text-sm p-4 rounded-lg bg-ml-code-bg text-ml-code-text overflow-auto;
+    @apply font-mono text-sm p-4 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 overflow-auto;
   }
 
   .btn-primary {
