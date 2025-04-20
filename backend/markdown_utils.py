@@ -82,16 +82,22 @@ def process_obsidian_links(html_content):
 
 def build_directory_tree():
     categories = {}
+    
+    # Assicurati che la directory dei contenuti esista
+    if not os.path.exists(CONTENT_DIR):
+        os.makedirs(CONTENT_DIR, exist_ok=True)
+        
+    # Esplora l'albero delle directory
     for root, _, files in os.walk(CONTENT_DIR):
         relative_path = os.path.relpath(root, CONTENT_DIR)
-        if relative_path == '.' or relative_path.split(os.sep)[0] == 'imgs':
+        if relative_path == '.':
             continue
             
+        # Se sono presenti file .md, aggiungi alla struttura
         filtered_files = [
             {
                 "name": f.removesuffix('.md'),
                 "path": os.path.join(relative_path, f).replace('\\', '/'),
-                "full_path": os.path.join(root, f)
             }
             for f in files if f.endswith(".md")
         ]
