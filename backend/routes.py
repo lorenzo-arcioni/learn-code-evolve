@@ -156,11 +156,11 @@ async def get_theory_structure():
       …
     }
     """
-    from markdown_utils import CONTENT_DIR, parse_markdown_content, build_directory_tree
+    from markdown_utils import CONTENT_DIR, build_directory_tree
     # build_directory_tree deve tornare esattamente questo formato
-    return build_directory_tree(os.path.join(CONTENT_DIR, "theory"))
+    return build_directory_tree()
 
-@router.get("/content/theory/{path:path}")
+@router.get("/theory/{path:path}")
 async def get_theory_content(path: str):
     """
     Legge il file Markdown corrispondente a `path`
@@ -170,10 +170,10 @@ async def get_theory_content(path: str):
     from markdown_utils import CONTENT_DIR, parse_markdown_content, build_directory_tree
     # Normalizza e costruisci il percorso al .md
     full_path = os.path.normpath(
-        os.path.join(CONTENT_DIR, "theory", f"{path}.md")
+        os.path.join(CONTENT_DIR,  f"{path}.md")
     )
     # Blocca directory traversal
-    if not full_path.startswith(os.path.join(CONTENT_DIR, "theory")):
+    if not full_path.startswith(os.path.join(CONTENT_DIR)):
         raise HTTPException(400, "Invalid path")
     if not os.path.exists(full_path):
         raise HTTPException(404, f"Content not found: {path}")
@@ -211,7 +211,6 @@ async def get_leaderboard():
     return leaderboard
 
 # Exercises routes
-
 @router.post("/exercises/{exercise_id}/submit")
 async def submit_solution(
     exercise_id: str, 

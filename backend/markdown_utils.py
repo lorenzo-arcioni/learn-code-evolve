@@ -5,7 +5,7 @@ import markdown
 from fastapi import HTTPException
 import urllib.parse
 
-CONTENT_DIR = "backend/content/theory"
+CONTENT_DIR = "content/theory"
 
 def protect_math_content(md_content):
     math_blocks = []

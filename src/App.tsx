@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,8 +26,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/theory" element={<Theory />} />
-          <Route path="/theory/:topicId" element={<TheoryTopic />} />
-          <Route path="/theory/:topicId/:contentPath" element={<TheoryTopic />} />
+          {/* Unified wildcard route for nested content paths */}
+          <Route path="/theory/:topicId/*" element={<TheoryTopic />} />
           <Route path="/practice" element={<Practice />} />
           <Route path="/practice/:exerciseId" element={<ExerciseDetail />} />
           <Route path="/profile" element={<Profile />} />
