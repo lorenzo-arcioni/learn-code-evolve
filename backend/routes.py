@@ -145,6 +145,7 @@ async def get_exercise(exercise_id: str):
     return Exercise(**exercise)
 
 # Theory routes
+
 @router.get("/theory/structure")
 async def get_theory_structure():
     """
