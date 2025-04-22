@@ -10,40 +10,96 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, ChartBar, GitMerge, Cpu } from "lucide-react";
+import {
+  BookOpen,
+  BarChart4,
+  ScatterChart,
+  BrainCircuit,
+  MessageSquareText,
+  Sigma,
+} from "lucide-react";
 
 const topics = [
   {
-    id: "intro",
+    id: "math-for-ml",
+    title: "Mathematics for Machine Learning",
+    description: "Essential math concepts behind ML algorithms",
+    icon: Sigma, // Simbolo matematico
+    badge: "Beginner",
+    subtopics: [
+      "Linear Algebra Basics",
+      "Matrix Operations",
+      "Calculus for Optimization",
+      "Probability and Statistics",
+      "Gradient Descent and Derivatives"
+    ],
+  },
+  {
+    id: "introduction",
     title: "Introduction to Machine Learning",
     description: "Fundamentals of machine learning and its applications",
-    icon: Brain,
+    icon: BookOpen, // Icona base, educativa
     badge: "Beginner",
-    subtopics: ["What is Machine Learning?", "Types of Machine Learning", "Applications and Use Cases"],
+    subtopics: [
+      "What is Machine Learning?",
+      "Types of Machine Learning",
+      "Applications and Use Cases"
+    ],
   },
   {
-    id: "supervised",
+    id: "supervised-learning",
     title: "Supervised Learning",
     description: "Regression and classification algorithms for labeled data",
-    icon: ChartBar,
+    icon: BarChart4, // Icona legata a grafici e analisi
     badge: "Intermediate",
-    subtopics: ["Linear Regression", "Logistic Regression", "Decision Trees", "Support Vector Machines"],
+    subtopics: [
+      "Linear Regression",
+      "Logistic Regression",
+      "Decision Trees",
+      "Support Vector Machines"
+    ],
   },
   {
-    id: "unsupervised",
+    id: "unsupervised-learning",
     title: "Unsupervised Learning",
     description: "Clustering and dimension reduction techniques",
-    icon: GitMerge,
+    icon: ScatterChart, // Rappresenta bene clustering e distribuzioni
     badge: "Intermediate",
-    subtopics: ["K-Means Clustering", "Hierarchical Clustering", "Principal Component Analysis", "t-SNE"],
+    subtopics: [
+      "K-Means Clustering",
+      "Hierarchical Clustering",
+      "Principal Component Analysis",
+      "t-SNE"
+    ],
   },
   {
     id: "deep-learning",
     title: "Deep Learning",
     description: "Neural networks and advanced models",
-    icon: Cpu,
+    icon: BrainCircuit, // Perfetta per rappresentare le reti neurali
     badge: "Advanced",
-    subtopics: ["Neural Networks Basics", "Convolutional Neural Networks", "Recurrent Neural Networks", "Transformers"],
+    subtopics: [
+      "Neural Networks Basics",
+      "Convolutional Neural Networks",
+      "Recurrent Neural Networks",
+      "Transformers"
+    ],
+  },
+  {
+    id: "nlp",
+    title: "Natural Language Processing",
+    description: "Techniques for processing and understanding human language",
+    icon: MessageSquareText, // Testo e linguaggio
+    badge: "Advanced",
+    subtopics: [
+      "Text Preprocessing",
+      "Bag of Words & TF-IDF",
+      "Word Embeddings (Word2Vec, GloVe)",
+      "Named Entity Recognition",
+      "Sentiment Analysis",
+      "Question Answering",
+      "Language Models (BERT, GPT)"
+    ],
   },
 ];
 

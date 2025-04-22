@@ -23,6 +23,7 @@ os.makedirs("uploads/avatars", exist_ok=True)
 
 # Serve static files
 app.mount("/avatars", StaticFiles(directory="uploads/avatars"), name="avatars")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Include routers
 app.include_router(router)

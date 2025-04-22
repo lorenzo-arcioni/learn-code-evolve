@@ -47,9 +47,9 @@ def remove_math_paragraphs(html_content):
     )
     return html_content
 
+
 def find_markdown_file(name):
-    normalized_name = name.strip().lower().removesuffix('.md')
-    target_filename = f"{normalized_name}.md"
+    target_filename = name.lower().replace('&rsquo;', '\'') + '.md'
 
     for root, _, files in os.walk(CONTENT_DIR):
         for file in files:

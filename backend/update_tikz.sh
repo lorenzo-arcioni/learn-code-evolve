@@ -1,5 +1,25 @@
 #!/bin/bash
 
+# ========================================================================
+# Script per convertire blocchi TikZ in SVG all'interno di file Markdown
+#
+# Questo script cerca nei file Markdown (`.md`) tutti i blocchi di codice
+# delimitati da ```tikz e li converte in immagini SVG. 
+#
+#Il processo include:
+#
+# 1. Verifica che i tool necessari siano installati: pdflatex, pdf2svg, md5sum.
+# 2. Estrae i blocchi TikZ dai file Markdown.
+# 3. Genera un hash del contenuto per evitare duplicati.
+# 4. Compila il codice TikZ in PDF con pdflatex.
+# 5. Converte il PDF in SVG usando pdf2svg.
+# 6. Inserisce un tag <img> nel Markdown al posto del blocco TikZ originale.
+# 7. Salva gli SVG in ./static/images/tikz/, usando l'hash come nome file.
+#
+# Questo è utile per generare versioni web-friendly dei diagrammi TikZ
+# in modo automatico e riutilizzabile.
+# ========================================================================
+
 # Verifica la presenza dei tool necessari
 command -v pdflatex >/dev/null 2>&1 || { echo "Installare pdflatex (texlive)"; exit 1; }
 command -v pdf2svg >/dev/null 2>&1 || { echo "Installare pdf2svg"; exit 1; }

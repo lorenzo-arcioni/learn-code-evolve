@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import RedirectResponse
 from datetime import timedelta
 from bson import ObjectId
 from typing import List
@@ -11,9 +12,14 @@ from models import (
 )
 from auth import (
     authenticate_user, create_access_token, get_current_active_user,
-    get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
+    get_password_hash, get_google_user_info, ACCESS_TOKEN_EXPIRE_MINUTES
 )
 from database import db
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
+GOOGLE_DISCOVERY_URL = os.getenv("GOOGLE_DISCOVERY_URL") 
 
 router = APIRouter()
 
@@ -31,6 +37,50 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/auth/google/login")
+async def google_login():
+    # Invia l'utente a Google per login
+    return RedirectResponse(
+        f"https://accounts.google.com/o/oauth2/v2/auth"
+        f"?response_type=code"
+        f"&client_id={GOOGLE_CLIENT_ID}"
+        f"&redirect_uri={GOOGLE_REDIRECT_URI}"
+        f"&scope=openid%20email%20profile"
+    )
+
+@router.get("/auth/google/callback")
+async def google_callback(code: str):
+    try:
+        google_user = await get_google_user_info(code)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Failed to authenticate with Google")
+
+    email = google_user.get("email")
+    name = google_user.get("name")
+    picture = google_user.get("picture")
+    
+    # Cerca l'utente nel DB, o crealo se non esiste
+    user = await db["users"].find_one({"email": email})
+    if not user:
+        new_user = UserInDB(
+            username=email.split("@")[0],
+            email=email,
+            full_name=name,
+            hashed_password="",  # no password
+            is_active=True,
+            points=0,
+            solved_exercises=[],
+            avatar_url=picture
+        )
+        result = await db["users"].insert_one(new_user.dict(by_alias=True))
+        user = await db["users"].find_one({"_id": result.inserted_id})
+
+    # Crea token JWT
+    access_token = create_access_token(data={"sub": user["username"]})
+    
+    # In un'app reale potresti redirigere verso il frontend con il token
     return {"access_token": access_token, "token_type": "bearer"}
 
 # User management

@@ -16,6 +16,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import { authApi } from "@/services/api";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { FcGoogle } from "react-icons/fc";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -41,6 +42,10 @@ const Login = () => {
       return;
     }
     loginMutation.mutate();
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:8000/auth/google/login";
   };
 
   return (
@@ -90,6 +95,26 @@ const Login = () => {
                 disabled={loginMutation.isPending}
               >
                 {loginMutation.isPending ? "Signing in..." : "Sign in"}
+              </Button>
+
+              <div className="relative py-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    or continue with
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full flex items-center justify-center gap-2"
+                onClick={handleGoogleLogin}
+              >
+                <FcGoogle size={20} />
+                Sign in with Google
               </Button>
             </CardContent>
           </form>
