@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,8 @@ const Login = () => {
     mutationFn: () => authApi.login(email, password),
     onSuccess: () => {
       toast.success("Login successful!");
-      navigate("/");
+      // Reload the page instead of navigating
+      window.location.reload();
     },
     onError: (error: any) => {
       console.error("Login error:", error);

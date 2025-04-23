@@ -3,7 +3,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
-from routes import router
+from routes import router as main_router
+from admin_routes import router as admin_router
+from contact_routes import router as contact_router
+from content_view_routes import router as content_view_router
 from database import client
 
 # Initialize FastAPI
@@ -26,7 +29,10 @@ app.mount("/avatars", StaticFiles(directory="uploads/avatars"), name="avatars")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Include routers
-app.include_router(router)
+app.include_router(main_router)
+app.include_router(admin_router)
+app.include_router(contact_router)
+app.include_router(content_view_router)
 
 # Startup and shutdown events
 @app.on_event("startup")

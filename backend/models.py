@@ -54,6 +54,8 @@ class UserInDB(UserBase):
     solved_exercises: List[str] = []
     points: int = 0
     is_active: bool = True
+    role: str = "user"  # Nuovo campo: "user" o "admin"
+    last_login: Optional[datetime] = None  # Nuovo campo
 
     model_config = {
         "populate_by_name": True,
@@ -65,11 +67,18 @@ class User(UserBase):
     id: str
     points: int
     solved_exercises: List[str]
+    role: str = "user"  # Aggiunto il campo role
+    is_active: bool = True  # Aggiunto il campo is_active
+    last_login: Optional[datetime] = None  # Aggiunto il campo last_login
 
     model_config = {
         "populate_by_name": True,
         "json_encoders": {ObjectId: str}
     }
+
+class AdminUserUpdate(BaseModel):
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
 
 # ----------------------
 # Token Models
@@ -188,3 +197,85 @@ class ConsultationRequest(BaseModel):
     email: str
     consultationType: str
     description: str
+
+class FeedbackCreate(BaseModel):
+    name: str
+    email: str
+    message: str
+
+class Feedback(BaseModel):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    name: str
+    email: str
+    message: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    resolved: bool = False
+
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str}
+    }
+
+class FeedbackResponse(BaseModel):
+    id: str
+    name: str
+    email: str
+    message: str
+    created_at: datetime
+    resolved: bool
+
+    model_config = {
+        "populate_by_name": True,
+        "json_encoders": {ObjectId: str}
+    }
+
+# ----------------------
+# Content View Models
+# ----------------------
+
+class ContentView(BaseModel):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    content_id: str
+    content_type: str  # "theory" o "exercise"
+    content_title: str
+    user_id: Optional[str] = None
+    viewed_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str}
+    }
+
+# ----------------------
+# Statistics Models
+# ----------------------
+
+class UserStats(BaseModel):
+    total_users: int
+    active_users: int
+    new_users_weekly: int
+    active_users_7days: int
+    active_users_30days: int
+
+class ContentStats(BaseModel):
+    total_content: int
+    top_content: List[dict]
+    recent_content: List[dict]
+
+class InteractionStats(BaseModel):
+    weekly_views: int
+    monthly_views: int
+    average_views: float
+
+class FeedbackStats(BaseModel):
+    total_feedback: int
+    unresolved_feedback: int
+    recent_feedback: int
+
+class AdminDashboardStats(BaseModel):
+    user_stats: UserStats
+    content_stats: ContentStats
+    interaction_stats: InteractionStats
+    feedback_stats: FeedbackStats

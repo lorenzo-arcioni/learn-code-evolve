@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -20,6 +20,7 @@ import { User, Settings, LogOut } from "lucide-react";
 import { NotificationPanel } from '../notifications/NotificationPanel';
 
 const Header = () => {
+  const location = useLocation();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
@@ -28,17 +29,13 @@ const Header = () => {
   useEffect(() => {
     const token = localStorage.getItem("ml_academy_token");
     if (token) {
-      // Fetch user data
+      setIsLoading(true);
       authApi.getCurrentUser()
-        .then(userData => {
-          setUser(userData);
-          setIsLoading(false);
-        })
-        .catch(error => {
-          console.error("Error fetching user:", error);
-          setIsLoading(false);
-        });
+        .then(u => setUser(u))
+        .catch(() => setUser(null))
+        .finally(() => setIsLoading(false));
     } else {
+      setUser(null);
       setIsLoading(false);
     }
   }, []);
@@ -69,7 +66,15 @@ const Header = () => {
   );
 };
 
-const DesktopNav = ({ user, isLoading, handleLogout }: { user: any, isLoading: boolean, handleLogout: () => void }) => {
+const DesktopNav = ({
+  user,
+  isLoading,
+  handleLogout,
+}: {
+  user: any;
+  isLoading: boolean;
+  handleLogout: () => void;
+}) => {
   return (
     <nav className="flex items-center gap-6">
       <Link to="/theory" className="nav-link">
@@ -90,59 +95,77 @@ const DesktopNav = ({ user, isLoading, handleLogout }: { user: any, isLoading: b
       <Link to="/about" className="nav-link">
         About
       </Link>
-      
-      {isLoading ? (
-        <div className="w-20 h-9 bg-gray-200 animate-pulse rounded-md ml-4"></div>
-      ) : user ? (
-        <div className="flex items-center gap-4">
-          <NotificationPanel />
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full ml-4 p-0 h-9 w-9 overflow-hidden">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={user.avatar_url ? `http://localhost:8000${user.avatar_url}` : undefined} />
-                  <AvatarFallback>
-                    {user.username ? user.username.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56 p-2" align="end">
-              <div className="p-2 border-b mb-2">
-                <p className="font-medium">{user.full_name || user.username}</p>
-                <p className="text-xs text-muted-foreground">{user.email}</p>
-              </div>
-              <div className="grid gap-1">
-                <Button variant="ghost" className="justify-start" asChild>
-                  <Link to="/profile" className="flex items-center">
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </Link>
+
+      <div className="min-w-[120px] flex items-center justify-end ml-4">
+        {isLoading ? (
+          <div className="w-full h-9 bg-gray-200 animate-pulse rounded-md"></div>
+        ) : user ? (
+          <div className="flex items-center gap-4">
+            <NotificationPanel />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full p-0 h-9 w-9 overflow-hidden"
+                >
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage
+                      src={
+                        user.avatar_url
+                          ? `http://localhost:8000${user.avatar_url}`
+                          : undefined
+                      }
+                    />
+                    <AvatarFallback>
+                      {user.username
+                        ? user.username.charAt(0).toUpperCase()
+                        : <User className="h-4 w-4" />}
+                    </AvatarFallback>
+                  </Avatar>
                 </Button>
-                <Button variant="ghost" className="justify-start" asChild>
-                  <Link to="/profile?tab=settings" className="flex items-center">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </Button>
-                <Button variant="ghost" className="justify-start text-red-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950" onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-      ) : (
-        <>
-          <Button asChild variant="secondary" className="ml-4">
-            <Link to="/login">Log in</Link>
-          </Button>
-          <Button asChild>
-            <Link to="/signup">Sign up</Link>
-          </Button>
-        </>
-      )}
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-2" align="end">
+                <div className="p-2 border-b mb-2">
+                  <p className="font-medium">{user.full_name || user.username}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                </div>
+                <div className="grid gap-1">
+                  <Button variant="ghost" className="justify-start" asChild>
+                    <Link to="/profile" className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" className="justify-start" asChild>
+                    <Link to="/profile?tab=settings" className="flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start text-red-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <Button asChild variant="secondary">
+              <Link to="/login">Log in</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/signup">Sign up</Link>
+            </Button>
+          </div>
+        )}
+      </div>
     </nav>
   );
 };

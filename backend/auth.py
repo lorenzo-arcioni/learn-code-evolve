@@ -48,6 +48,13 @@ async def authenticate_user(username: str, password: str):
         return False
     if not verify_password(password, user.hashed_password):
         return False
+    
+    # Update last_login time
+    await db["users"].update_one(
+        {"username": username},
+        {"$set": {"last_login": datetime.utcnow()}}
+    )
+    
     return user
 
 ## Funzione per autenticare l'utente tramite Google

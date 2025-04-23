@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 
 // Create an axios instance for the FastAPI backend
@@ -137,6 +136,12 @@ export const theoryApi = {
     const response = await api.get(`/theory/content/${path}`);
     return response.data;
   },
+  
+  // Aggiunto nuovo metodo per registrare le visualizzazioni
+  recordContentView: async (contentId: string, contentType: string, contentTitle: string) => {
+    const response = await api.post('/content/view', { content_id: contentId, content_type: contentType, content_title: contentTitle });
+    return response.data;
+  },
 };
 
 // API functions for leaderboard
@@ -185,6 +190,61 @@ export const coursesApi = {
   
   enrollInCourse: async (courseId: string) => {
     const response = await api.post(`/courses/${courseId}/enroll`);
+    return response.data;
+  },
+};
+
+// API functions for contact/feedback
+export const contactApi = {
+  submitFeedback: async (feedbackData: {
+    name: string;
+    email: string;
+    message: string;
+  }) => {
+    const response = await api.post('/contact/feedback', feedbackData);
+    return response.data;
+  },
+};
+
+// API functions for admin
+export const adminApi = {
+  // User management
+  getAllUsers: async (filters?: { email?: string; role?: string; is_active?: boolean }) => {
+    const params = new URLSearchParams();
+    
+    if (filters?.email) params.append('email', filters.email);
+    if (filters?.role) params.append('role', filters.role);
+    if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
+    
+    const response = await api.get(`/admin/users?${params.toString()}`);
+    return response.data;
+  },
+  
+  updateUser: async (userId: string, updateData: { role?: string; is_active?: boolean }) => {
+    const response = await api.put(`/admin/users/${userId}`, updateData);
+    return response.data;
+  },
+  
+  // Statistics
+  getDashboardStatistics: async () => {
+    const response = await api.get('/admin/statistics/dashboard');
+    return response.data;
+  },
+  
+  // Feedback management
+  getFeedback: async (filters?: { resolved?: boolean, sort_by?: string, sort_direction?: number }) => {
+    const params = new URLSearchParams();
+    
+    if (filters?.resolved !== undefined) params.append('resolved', String(filters.resolved));
+    if (filters?.sort_by) params.append('sort_by', filters.sort_by);
+    if (filters?.sort_direction !== undefined) params.append('sort_direction', String(filters.sort_direction));
+    
+    const response = await api.get(`/admin/feedback?${params.toString()}`);
+    return response.data;
+  },
+  
+  updateFeedbackStatus: async (feedbackId: string, resolved: boolean) => {
+    const response = await api.put(`/admin/feedback/${feedbackId}`, { resolved });
     return response.data;
   },
 };
