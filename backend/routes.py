@@ -3,12 +3,14 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import RedirectResponse
 from datetime import timedelta
 from bson import ObjectId
-from typing import List
+from typing import List, Dict, Any
+import datetime
 import os
 import shutil
 from models import (
     User, UserCreate, UserInDB, Token, Exercise, ExerciseCreate,
-    Theory, TheoryCreate, LeaderboardEntry, UserUpdate, AvatarResponse
+    Theory, TheoryCreate, LeaderboardEntry, UserUpdate, AvatarResponse,
+    ConsultationRequest, Product, Course
 )
 from auth import (
     authenticate_user, create_access_token, get_current_active_user,
@@ -320,4 +322,218 @@ async def get_user_progress(current_user: UserInDB = Depends(get_current_active_
         "progress_percentage": (user_solved / total_exercises * 100) if total_exercises > 0 else 0,
         "points": current_user.points,
         "difficulty_stats": difficulty_stats
+    }
+
+# Shop routes
+@router.get("/products/", response_model=Dict[str, List[Product]])
+async def get_products():
+    # In a real app, fetch from database
+    # For now, return mock data
+    products = await db["products"].find().to_list(100)
+    if not products:
+        # Default mock products if none in database
+        return {
+            "Consulenze": [
+                {
+                    "id": 1,
+                    "title": "Consulenza Personalizzata",
+                    "description": "Sessione di consulenza one-to-one con un esperto di Machine Learning",
+                    "price": "€150/ora",
+                    "image": "https://images.unsplash.com/photo-1461749280684-dccba630e2f6",
+                    "category": "Consulenze"
+                },
+                {
+                    "id": 2,
+                    "title": "Review del Codice",
+                    "description": "Revisione dettagliata del tuo codice ML da parte di professionisti",
+                    "price": "€80/progetto",
+                    "image": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
+                    "category": "Consulenze"
+                }
+            ],
+            "Prodotti Digitali": [
+                {
+                    "id": 3,
+                    "title": "Dataset Premium",
+                    "description": "Accesso a dataset curati e preprocessati per i tuoi progetti",
+                    "price": "€50/mese",
+                    "image": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5",
+                    "category": "Prodotti Digitali"
+                },
+                {
+                    "id": 4,
+                    "title": "Esercizi Guidati ML",
+                    "description": "Raccolta di esercizi pratici con soluzioni commentate",
+                    "price": "€35",
+                    "image": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40",
+                    "category": "Prodotti Digitali"
+                }
+            ],
+            "Prodotti Fisici": [
+                {
+                    "id": 5,
+                    "title": "Libro: ML da Zero",
+                    "description": "Manuale completo per iniziare con il Machine Learning",
+                    "price": "€45",
+                    "image": "https://images.unsplash.com/photo-1543002588-bfa74002ed7e",
+                    "category": "Prodotti Fisici"
+                }
+            ]
+        }
+    
+    # If products exist in database, organize them by category
+    categorized_products = {}
+    for product in products:
+        category = product.get("category", "Altri Prodotti")
+        if category not in categorized_products:
+            categorized_products[category] = []
+        categorized_products[category].append(Product(**product))
+    
+    return categorized_products
+
+@router.get("/products/{product_id}", response_model=Product)
+async def get_product(product_id: int):
+    product = await db["products"].find_one({"id": product_id})
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return Product(**product)
+
+@router.post("/consultation-requests/", response_model=Dict[str, Any])
+async def submit_consultation_request(
+    request: ConsultationRequest,
+    current_user: UserInDB = Depends(get_current_active_user)
+):
+    request_data = request.dict()
+    
+    # Add user information if available
+    if current_user:
+        request_data["user_id"] = str(current_user.id)
+        request_data["username"] = current_user.username
+    
+    # Add timestamp
+    request_data["created_at"] = datetime.utcnow()
+    
+    # Store in database
+    result = await db["consultation_requests"].insert_one(request_data)
+    
+    return {
+        "success": True,
+        "message": "Consultation request submitted successfully",
+        "request_id": str(result.inserted_id)
+    }
+
+# Courses routes
+@router.get("/courses/", response_model=Dict[str, List[Course]])
+async def get_courses():
+    # In a real app, fetch from database
+    # For now, return mock data
+    courses = await db["courses"].find().to_list(100)
+    if not courses:
+        # Default mock courses if none in database
+        return {
+            "Machine Learning": [
+                {
+                    "id": 1,
+                    "title": "Introduzione al Machine Learning",
+                    "description": "Un corso base che copre i fondamenti del machine learning",
+                    "instructor": "Prof. Marco Rossi",
+                    "duration": "8 settimane",
+                    "level": "Principiante",
+                    "price": "€99",
+                    "image": "https://images.unsplash.com/photo-1488229297570-58520851e868",
+                    "category": "Machine Learning"
+                },
+                {
+                    "id": 2,
+                    "title": "Deep Learning Avanzato",
+                    "description": "Approfondimento su reti neurali e architetture deep learning",
+                    "instructor": "Dr. Elena Bianchi",
+                    "duration": "10 settimane",
+                    "level": "Avanzato",
+                    "price": "€149",
+                    "image": "https://images.unsplash.com/photo-1503437313881-503a91226402",
+                    "category": "Machine Learning"
+                }
+            ],
+            "Matematica": [
+                {
+                    "id": 3,
+                    "title": "Algebra Lineare per ML",
+                    "description": "Concetti di algebra lineare essenziali per il machine learning",
+                    "instructor": "Prof. Luigi Verdi",
+                    "duration": "6 settimane",
+                    "level": "Intermedio",
+                    "price": "€79",
+                    "image": "https://images.unsplash.com/photo-1509228468518-180dd4864904",
+                    "category": "Matematica"
+                }
+            ],
+            "Algoritmi": [
+                {
+                    "id": 4,
+                    "title": "Algoritmi di Ottimizzazione",
+                    "description": "Studio degli algoritmi di ottimizzazione usati in ML",
+                    "instructor": "Dr. Paolo Neri",
+                    "duration": "7 settimane",
+                    "level": "Avanzato",
+                    "price": "€129",
+                    "image": "https://images.unsplash.com/photo-1496065187959-7f07b8353c55",
+                    "category": "Algoritmi"
+                }
+            ]
+        }
+    
+    # If courses exist in database, organize them by category
+    categorized_courses = {}
+    for course in courses:
+        category = course.get("category", "Altri Corsi")
+        if category not in categorized_courses:
+            categorized_courses[category] = []
+        categorized_courses[category].append(Course(**course))
+    
+    return categorized_courses
+
+@router.get("/courses/{course_id}", response_model=Course)
+async def get_course(course_id: int):
+    course = await db["courses"].find_one({"id": course_id})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    return Course(**course)
+
+@router.post("/courses/{course_id}/enroll", response_model=Dict[str, Any])
+async def enroll_in_course(
+    course_id: int,
+    current_user: UserInDB = Depends(get_current_active_user)
+):
+    # Check if course exists
+    course = await db["courses"].find_one({"id": course_id})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    # Check if user is already enrolled
+    enrollment = await db["enrollments"].find_one({
+        "user_id": str(current_user.id),
+        "course_id": course_id
+    })
+    
+    if enrollment:
+        return {
+            "success": False,
+            "message": "You are already enrolled in this course"
+        }
+    
+    # Create enrollment
+    enrollment_data = {
+        "user_id": str(current_user.id),
+        "course_id": course_id,
+        "enrolled_at": datetime.utcnow(),
+        "progress": 0,
+        "completed": False
+    }
+    
+    await db["enrollments"].insert_one(enrollment_data)
+    
+    return {
+        "success": True,
+        "message": f"Successfully enrolled in {course['title']}"
     }

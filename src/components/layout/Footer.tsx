@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -23,6 +22,8 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li><Link to="/theory" className="hover:text-primary">Theory</Link></li>
               <li><Link to="/practice" className="hover:text-primary">Practice</Link></li>
+              <li><Link to="/courses" className="hover:text-primary">Courses</Link></li>
+              <li><Link to="/shop" className="hover:text-primary">Shop</Link></li>
               <li><Link to="/about" className="hover:text-primary">About</Link></li>
             </ul>
           </div>
@@ -33,6 +34,7 @@ const Footer = () => {
               <li><Link to="/resources/documentation" className="hover:text-primary">Documentation</Link></li>
               <li><Link to="/resources/api" className="hover:text-primary">API</Link></li>
               <li><Link to="/resources/community" className="hover:text-primary">Community</Link></li>
+              <li><Link to="/leaderboard" className="hover:text-primary">Leaderboard</Link></li>
             </ul>
           </div>
           

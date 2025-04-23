@@ -147,4 +147,46 @@ export const leaderboardApi = {
   },
 };
 
+// API functions for shop
+export const shopApi = {
+  getProducts: async () => {
+    const response = await api.get('/products/');
+    return response.data;
+  },
+  
+  getProductById: async (productId: string) => {
+    const response = await api.get(`/products/${productId}`);
+    return response.data;
+  },
+  
+  submitConsultationRequest: async (requestData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    consultationType: string;
+    description: string;
+  }) => {
+    const response = await api.post('/consultation-requests/', requestData);
+    return response.data;
+  },
+};
+
+// API functions for courses
+export const coursesApi = {
+  getCourses: async () => {
+    const response = await api.get('/courses/');
+    return response.data;
+  },
+  
+  getCourseById: async (courseId: string) => {
+    const response = await api.get(`/courses/${courseId}`);
+    return response.data;
+  },
+  
+  enrollInCourse: async (courseId: string) => {
+    const response = await api.post(`/courses/${courseId}/enroll`);
+    return response.data;
+  },
+};
+
 export default api;

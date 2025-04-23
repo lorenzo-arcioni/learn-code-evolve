@@ -150,3 +150,41 @@ class LeaderboardEntry(BaseModel):
 
 class AvatarResponse(BaseModel):
     avatar_url: str
+
+# ----------------------
+# Product Models
+# ----------------------
+
+class Product(BaseModel):
+    id: int
+    title: str
+    description: str
+    price: str
+    image: str
+    category: str
+
+# ----------------------
+# Course Models
+# ----------------------
+
+class Course(BaseModel):
+    id: int
+    title: str
+    description: str
+    instructor: str
+    duration: str
+    level: str
+    price: str
+    image: str
+    category: str
+
+# ----------------------
+# Consultation Request
+# ----------------------
+
+class ConsultationRequest(BaseModel):
+    firstName: str
+    lastName: str
+    email: str
+    consultationType: str
+    description: str
