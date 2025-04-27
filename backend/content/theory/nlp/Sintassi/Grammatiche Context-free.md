@@ -82,6 +82,8 @@ A \rightarrow B\ C\ D \quad \Rightarrow \quad
 A \rightarrow B\ X,\quad X \rightarrow C\ D
 $$
 
+👉 Vedi anche: [[Forma Normale di Chomsky]]
+
 ## Grammatiche a dipendenze
 
 Le **grammatiche a dipendenze** rappresentano le relazioni sintattiche (e talvolta semantiche) tra le parole di una frase, senza l'uso di costituenti frasali (NP, VP...).
@@ -138,6 +140,63 @@ Questa rappresentazione evita nodi astratti (come NP o VP) e si concentra sulle 
   - Dati per l'addestramento di parser multilingue
   - Strumenti per il parsing e lo studio della sintassi in più lingue
 
+## 🌟 Grammatiche Context-Free Probabilistiche (PCFG)
+
+Le **PCFG (Probabilistic Context-Free Grammars)** sono un'estensione delle grammatiche libere dal contesto (CFG) che associano una **probabilità a ciascuna regola di produzione**. Questo permette di modellare **l'ambiguità sintattica** in modo quantitativo, selezionando l'albero di derivazione più probabile per una frase.
+
+### 🧮 Definizione di PCFG
+
+Una PCFG è una quintuppla:
+
+$$
+G = (N, \Sigma, R, S, P)
+$$
+
+dove:
+
+- $N$: insieme finito di simboli non terminali
+- $\Sigma$: insieme finito di simboli terminali
+- $R$: insieme finito di regole di produzione del tipo $A \rightarrow \alpha$
+- $S \in N$: simbolo iniziale
+- $P$: funzione che assegna una probabilità a ciascuna produzione $A \rightarrow \alpha$, con:
+  
+$$
+\sum_{\alpha \in (N \cup \Sigma)^*} P(A \rightarrow \alpha) = 1 \quad \text{per ogni } A \in N
+$$
+
+### 🤔 Ma qual è la probabilità di un albero di parsing?
+
+La **probabilità di un albero di derivazione** $T$ per una frase $s$ è definita come il **prodotto delle probabilità** di tutte le produzioni usate nel derivarlo:
+
+$$
+P(T, s) = \prod_{i=1}^{n} P(\text{RHS}_i \mid \text{LHS}_i)
+$$
+
+📌 Dove:
+- $\text{LHS}_i \rightarrow \text{RHS}_i$ è la *i*-esima produzione usata nell'albero
+- $s$ è la frase generata da $T$
+
+### 🔗 Probabilità congiunta e marginale
+
+La **probabilità congiunta** della frase $s$ e dell'albero $T$ è:
+
+$$
+P(T, s) = P(T)P(s \mid T) = P(T)
+$$
+
+💡 Questo perché un albero $T$ determina completamente la frase $s$: contiene tutte le parole terminali in ordine.
+
+### 📍 Utilizzo delle PCFG
+
+Le PCFG sono fondamentali per:
+
+- **Disambiguazione sintattica**: tra molteplici alberi validi, si seleziona il più probabile.
+- **Parsing statistico**: come nei parser probabilistici top-down o bottom-up.
+- **Apprendimento automatico** delle probabilità da corpus annotati (es. Treebank).
+
+### 🧰 Esempio pratico
+
+Immagina due alberi sintattici validi per la frase _"I saw the man with the telescope."_ La PCFG assegna probabilità diverse a ciascun albero, favorendo quello che riflette la lettura più comune secondo i dati osservati.
 
 ## 🔍 Utilizzi delle CFG nel NLP
 

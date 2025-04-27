@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -21,13 +22,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import AdminStatistics from "@/components/admin/AdminStatistics";
-import AdminUsers from "@/components/admin/AdminUsers";
-import AdminFeedback from "@/components/admin/AdminFeedback";
-import AdminCourses from "@/components/admin/AdminCourses";
-import AdminProducts from "@/components/admin/AdminProducts";
-import AdminExercises from "@/components/admin/AdminExercises";
-import { Separator } from "@/components/ui/separator";
 
 type User = {
   id: string;
@@ -37,7 +31,6 @@ type User = {
   avatar_url?: string;
   points: number;
   solved_exercises: string[];
-  role?: string;
 };
 
 type ProgressData = {
@@ -62,25 +55,20 @@ const ProfilePage = () => {
   });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
 
+  // Fetch user data
   const { data: user, isLoading: userLoading, error: userError } = useQuery({
     queryKey: ["user"],
     queryFn: authApi.getCurrentUser,
   });
 
-  useEffect(() => {
-    if (user) {
-      console.log("User data:", user);
-      console.log("User role:", user.role);
-    }
-  }, [user]);
-
+  // Fetch user progress
   const { data: progress, isLoading: progressLoading } = useQuery({
     queryKey: ["userProgress"],
     queryFn: authApi.getUserProgress,
   });
 
+  // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: authApi.updateProfile,
     onSuccess: () => {
@@ -100,6 +88,7 @@ const ProfilePage = () => {
     },
   });
 
+  // Upload avatar mutation
   const uploadAvatarMutation = useMutation({
     mutationFn: authApi.uploadAvatar,
     onSuccess: () => {
@@ -121,6 +110,7 @@ const ProfilePage = () => {
     },
   });
 
+  // Set initial form data when user data is loaded
   useEffect(() => {
     if (user) {
       setFormData({
@@ -130,6 +120,7 @@ const ProfilePage = () => {
     }
   }, [user]);
 
+  // Check if user is logged in
   useEffect(() => {
     const token = localStorage.getItem("ml_academy_token");
     if (!token) {
@@ -137,6 +128,7 @@ const ProfilePage = () => {
     }
   }, [navigate]);
 
+  // Handle logout
   const handleLogout = () => {
     authApi.logout();
     navigate("/login");
@@ -146,16 +138,19 @@ const ProfilePage = () => {
     });
   };
 
+  // Handle form submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     updateProfileMutation.mutate(formData);
   };
 
+  // Handle avatar change
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setAvatarFile(file);
       
+      // Create a preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result as string);
@@ -164,19 +159,14 @@ const ProfilePage = () => {
     }
   };
 
+  // Handle avatar upload
   const handleAvatarUpload = () => {
     if (avatarFile) {
       uploadAvatarMutation.mutate(avatarFile);
-      setDialogOpen(false);
     }
   };
 
-  const handleCancelAvatarChange = () => {
-    setAvatarFile(null);
-    setAvatarPreview(null);
-    setDialogOpen(false);
-  };
-
+  // If user is not logged in, show nothing (redirect will happen in useEffect)
   if (!user && !userLoading) {
     return null;
   }
@@ -208,6 +198,7 @@ const ProfilePage = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Profile Overview Card */}
               <Card className="md:col-span-1">
                 <CardHeader>
                   <CardTitle>Profile Overview</CardTitle>
@@ -222,7 +213,7 @@ const ProfilePage = () => {
                       </AvatarFallback>
                     </Avatar>
                     
-                    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <Dialog>
                       <DialogTrigger asChild>
                         <Button 
                           variant="secondary" 
@@ -262,7 +253,10 @@ const ProfilePage = () => {
                         <DialogFooter>
                           <Button 
                             variant="outline" 
-                            onClick={handleCancelAvatarChange}
+                            onClick={() => {
+                              setAvatarFile(null);
+                              setAvatarPreview(null);
+                            }}
                           >
                             Cancel
                           </Button>
@@ -280,11 +274,6 @@ const ProfilePage = () => {
                   <div className="text-center">
                     <h3 className="text-xl font-semibold">{user.full_name || user.username}</h3>
                     <p className="text-muted-foreground">{user.email}</p>
-                    {user.role && (
-                      <span className="inline-block px-2 py-1 mt-1 text-xs font-medium rounded-full bg-primary/10 text-primary">
-                        {user.role === "admin" ? "Administrator" : "User"}
-                      </span>
-                    )}
                   </div>
                   
                   <div className="grid w-full grid-cols-2 gap-4 mt-4">
@@ -300,6 +289,7 @@ const ProfilePage = () => {
                 </CardContent>
               </Card>
 
+              {/* Main Content Area */}
               <div className="md:col-span-2">
                 <Tabs defaultValue="stats" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
@@ -307,6 +297,7 @@ const ProfilePage = () => {
                     <TabsTrigger value="settings">Settings</TabsTrigger>
                   </TabsList>
                   
+                  {/* Stats Tab */}
                   <TabsContent value="stats">
                     <Card>
                       <CardHeader>
@@ -366,6 +357,7 @@ const ProfilePage = () => {
                     </Card>
                   </TabsContent>
                   
+                  {/* Settings Tab */}
                   <TabsContent value="settings">
                     <Card>
                       <CardHeader>
@@ -415,77 +407,6 @@ const ProfilePage = () => {
                 </Tabs>
               </div>
             </div>
-          
-            {user && user.role === "admin" && ( 
-              <div className="mt-10">
-              <Separator className="my-6" />
-              <h2 className="text-2xl font-bold mb-6">Admin Dashboard</h2>
-              
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Platform Statistics</CardTitle>
-                    <CardDescription>Overview of key metrics and platform performance</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <AdminStatistics />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>User Management</CardTitle>
-                    <CardDescription>Manage platform users and their roles</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <AdminUsers />
-                  </CardContent>
-                </Card>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Courses</CardTitle>
-                      <CardDescription>Add and manage courses</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <AdminCourses />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Products</CardTitle>
-                      <CardDescription>Add and manage shop products</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <AdminProducts />
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Exercises</CardTitle>
-                    <CardDescription>Add and manage practice exercises</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <AdminExercises />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>User Feedback</CardTitle>
-                    <CardDescription>View and manage user feedback</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <AdminFeedback />
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-            )}            
           </>
         )}
       </div>

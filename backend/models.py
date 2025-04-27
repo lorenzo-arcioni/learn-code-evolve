@@ -1,6 +1,6 @@
 
 from datetime import datetime
-from typing import List, Optional, Any
+from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field, GetCoreSchemaHandler
 from bson import ObjectId
 from pydantic_core import core_schema
@@ -14,9 +14,9 @@ class PyObjectId(ObjectId):
     def __get_pydantic_core_schema__(cls, _source_type: Any, handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
         return core_schema.no_info_after_validator_function(
             cls.validate,
-            core_schema.str_schema()
+            core_schema.str_schema(),
         )
-
+    
     @classmethod
     def validate(cls, v: Any) -> "PyObjectId":
         if isinstance(v, ObjectId):
@@ -24,7 +24,13 @@ class PyObjectId(ObjectId):
         if isinstance(v, str) and ObjectId.is_valid(v):
             return cls(ObjectId(v))
         raise ValueError("Invalid ObjectId")
-
+    
+    def __str__(self) -> str:
+        return str(super().__str__())
+    
+    def __repr__(self) -> str:
+        return f"PyObjectId({super().__str__()})"
+    
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema, handler):
         return {"type": "string"}
@@ -54,7 +60,7 @@ class UserInDB(UserBase):
     solved_exercises: List[str] = []
     points: int = 0
     is_active: bool = True
-    role: str = "user"  # Nuovo campo: "user" o "admin"
+    role: str = "user" # Nuovo campo: "user" o "admin"
     last_login: Optional[datetime] = None  # Nuovo campo
 
     model_config = {
@@ -87,6 +93,7 @@ class AdminUserUpdate(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    role: str
 
 class TokenData(BaseModel):
     username: Optional[str] = None
@@ -258,6 +265,7 @@ class UserStats(BaseModel):
     new_users_weekly: int
     active_users_7days: int
     active_users_30days: int
+    admin_count: int
 
 class ContentStats(BaseModel):
     total_content: int
@@ -279,3 +287,5 @@ class AdminDashboardStats(BaseModel):
     content_stats: ContentStats
     interaction_stats: InteractionStats
     feedback_stats: FeedbackStats
+    user_activity_data: List[Dict[str, Any]]
+    content_views_data: List[Dict[str, Any]]

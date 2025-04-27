@@ -3,14 +3,14 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import RedirectResponse
 from datetime import timedelta
 from bson import ObjectId
-from typing import List, Dict, Any
-import datetime
+from typing import List, Dict, Any, Optional
+from datetime import datetime
 import os
 import shutil
 from models import (
     User, UserCreate, UserInDB, Token, Exercise, ExerciseCreate,
     Theory, TheoryCreate, LeaderboardEntry, UserUpdate, AvatarResponse,
-    ConsultationRequest, Product, Course
+    ConsultationRequest, Product, Course, ContentView
 )
 from auth import (
     authenticate_user, create_access_token, get_current_active_user,
@@ -39,7 +39,11 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "role": user.role,
+    }
 
 @router.get("/auth/google/login")
 async def google_login():
@@ -122,6 +126,7 @@ async def read_users_me(current_user: UserInDB = Depends(get_current_active_user
         username=current_user.username,
         email=current_user.email,
         full_name=current_user.full_name,
+        role=current_user.role,
         points=current_user.points,
         solved_exercises=current_user.solved_exercises,
         avatar_url=current_user.avatar_url
@@ -141,6 +146,7 @@ async def update_user_profile(
         )
     
     updated_user = await db["users"].find_one({"_id": current_user.id})
+    
     return User(
         id=str(updated_user["_id"]),
         username=updated_user["username"],
@@ -214,11 +220,16 @@ async def get_theory_structure():
     return build_directory_tree()
 
 @router.get("/theory/{path:path}")
-async def get_theory_content(path: str):
+async def get_theory_content(
+    path: str,
+    current_user: Optional[UserInDB] = Depends(get_current_active_user)
+):
     """
-    Legge il file Markdown corrispondente a `path`
+    Legge il file Markdown corrispondente a path
     (es. 'intro/01-what-is-machine-learning') e ne restituisce
     {"title": "...", "content": "<h1>…</h1>…"} via parse_markdown_content.
+    
+    Also records the view in the database for analytics.
     """
     from markdown_utils import CONTENT_DIR, parse_markdown_content, build_directory_tree
     # Normalizza e costruisci il percorso al .md
@@ -230,8 +241,26 @@ async def get_theory_content(path: str):
         raise HTTPException(400, "Invalid path")
     if not os.path.exists(full_path):
         raise HTTPException(404, f"Content not found: {path}")
+    
     # parse_markdown_content legge, converte e ritorna dict {title, content}
-    return parse_markdown_content(full_path)
+    content_data = parse_markdown_content(full_path)
+    
+    # Create ContentView object
+    view_data = ContentView(
+        content_id=path,
+        content_title=content_data["title"],
+        content_type="theory",
+        viewed_at=datetime.utcnow()
+    )
+    
+    # If user is logged in, associate the view with them
+    if current_user:
+        view_data.user_id = str(current_user.id)
+    
+    # Insert the view record into the database
+    await db["content_views"].insert_one(view_data.dict(by_alias=True))
+    
+    return content_data
 
 # Leaderboard routes
 
