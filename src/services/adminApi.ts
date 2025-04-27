@@ -90,7 +90,7 @@ const adminApi = {
   addExercise: async (exerciseData: any) => {
     try {
       const token = getToken();
-      const response = await axios.post(`${BASE_URL}/admin/exercises`, 
+      const response = await axios.post(`${BASE_URL}/admin/add-exercise`, 
         exerciseData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -104,7 +104,7 @@ const adminApi = {
   addCourse: async (courseData: any) => {
     try {
       const token = getToken();
-      const response = await axios.post(`${BASE_URL}/admin/courses`, 
+      const response = await axios.post(`${BASE_URL}/admin/add-course`, 
         courseData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -118,7 +118,7 @@ const adminApi = {
   addProduct: async (productData: any) => {
     try {
       const token = getToken();
-      const response = await axios.post(`${BASE_URL}/admin/products`, 
+      const response = await axios.post(`${BASE_URL}/admin/add-product`, 
         productData,
         { headers: { Authorization: `Bearer ${token}` } }
       );

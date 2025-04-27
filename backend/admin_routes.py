@@ -1,13 +1,14 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import JSONResponse
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from datetime import datetime, timedelta
 import os
 from bson import ObjectId
 from models import (
     UserInDB, User, AdminUserUpdate, Feedback, FeedbackResponse,
-    UserStats, ContentStats, InteractionStats, FeedbackStats, AdminDashboardStats
+    UserStats, ContentStats, InteractionStats, FeedbackStats, AdminDashboardStats,
+    Course
 )
 from admin_middleware import get_current_admin
 from database import db
@@ -416,3 +417,34 @@ async def update_feedback_status(
         created_at=updated_feedback["created_at"],
         resolved=updated_feedback["resolved"]
     )
+
+# Courses Management
+
+@router.post("/add-course", response_model=Dict[str, Any])
+async def add_course(
+    course_data: Course,
+    current_admin: UserInDB = Depends(get_current_admin)
+):
+    """
+    Add a new course to the database.
+    Only administrators can add courses.
+    """
+    
+    # Prepare the course data for insertion
+    course_dict = course_data.dict()
+    
+    # Add creation timestamp
+    course_dict["created_at"] = datetime.utcnow()
+    
+    # Add the admin who created the course
+    course_dict["created_by"] = str(current_admin.id)
+    
+    # Insert into database
+    result = await db["courses"].insert_one(course_dict)
+    
+    # Return success response
+    return {
+        "success": True,
+        "message": "Course added successfully",
+        "course_id": str(result.inserted_id)
+    }

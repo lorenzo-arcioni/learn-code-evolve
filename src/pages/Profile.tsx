@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authApi } from "@/services/api";
 import MainLayout from "@/components/layout/MainLayout";
@@ -55,6 +55,7 @@ type ProgressData = {
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     full_name: "",
@@ -63,6 +64,10 @@ const ProfilePage = () => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  
+  // Get the active tab from URL parameters
+  const searchParams = new URLSearchParams(location.search);
+  const activeTab = searchParams.get('tab') === 'settings' ? 'settings' : 'stats';
 
   const { data: user, isLoading: userLoading, error: userError } = useQuery({
     queryKey: ["user"],
@@ -175,6 +180,22 @@ const ProfilePage = () => {
     setAvatarFile(null);
     setAvatarPreview(null);
     setDialogOpen(false);
+  };
+  
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    // Update URL when tab changes without full page reload
+    const newSearchParams = new URLSearchParams(location.search);
+    if (value === 'settings') {
+      newSearchParams.set('tab', 'settings');
+    } else {
+      newSearchParams.delete('tab');
+    }
+    
+    navigate({
+      pathname: location.pathname,
+      search: newSearchParams.toString()
+    }, { replace: true });
   };
 
   if (!user && !userLoading) {
@@ -301,7 +322,7 @@ const ProfilePage = () => {
               </Card>
 
               <div className="md:col-span-2">
-                <Tabs defaultValue="stats" className="w-full">
+                <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="stats">Stats</TabsTrigger>
                     <TabsTrigger value="settings">Settings</TabsTrigger>

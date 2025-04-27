@@ -220,10 +220,7 @@ async def get_theory_structure():
     return build_directory_tree()
 
 @router.get("/theory/{path:path}")
-async def get_theory_content(
-    path: str,
-    current_user: Optional[UserInDB] = Depends(get_current_active_user)
-):
+async def get_theory_content(path: str):
     """
     Legge il file Markdown corrispondente a path
     (es. 'intro/01-what-is-machine-learning') e ne restituisce
@@ -254,8 +251,10 @@ async def get_theory_content(
     )
     
     # If user is logged in, associate the view with them
-    if current_user:
-        view_data.user_id = str(current_user.id)
+    try:
+        view_data.user_id = str(get_current_active_user().id)
+    except Exception:
+        pass  # Nessun utente loggato, si ignora
     
     # Insert the view record into the database
     await db["content_views"].insert_one(view_data.dict(by_alias=True))
@@ -354,71 +353,24 @@ async def get_user_progress(current_user: UserInDB = Depends(get_current_active_
     }
 
 # Shop routes
-@router.get("/products/", response_model=Dict[str, List[Product]])
-async def get_products():
-    # In a real app, fetch from database
-    # For now, return mock data
-    products = await db["products"].find().to_list(100)
-    if not products:
-        # Default mock products if none in database
-        return {
-            "Consulenze": [
-                {
-                    "id": 1,
-                    "title": "Consulenza Personalizzata",
-                    "description": "Sessione di consulenza one-to-one con un esperto di Machine Learning",
-                    "price": "€150/ora",
-                    "image": "https://images.unsplash.com/photo-1461749280684-dccba630e2f6",
-                    "category": "Consulenze"
-                },
-                {
-                    "id": 2,
-                    "title": "Review del Codice",
-                    "description": "Revisione dettagliata del tuo codice ML da parte di professionisti",
-                    "price": "€80/progetto",
-                    "image": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-                    "category": "Consulenze"
-                }
-            ],
-            "Prodotti Digitali": [
-                {
-                    "id": 3,
-                    "title": "Dataset Premium",
-                    "description": "Accesso a dataset curati e preprocessati per i tuoi progetti",
-                    "price": "€50/mese",
-                    "image": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5",
-                    "category": "Prodotti Digitali"
-                },
-                {
-                    "id": 4,
-                    "title": "Esercizi Guidati ML",
-                    "description": "Raccolta di esercizi pratici con soluzioni commentate",
-                    "price": "€35",
-                    "image": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40",
-                    "category": "Prodotti Digitali"
-                }
-            ],
-            "Prodotti Fisici": [
-                {
-                    "id": 5,
-                    "title": "Libro: ML da Zero",
-                    "description": "Manuale completo per iniziare con il Machine Learning",
-                    "price": "€45",
-                    "image": "https://images.unsplash.com/photo-1543002588-bfa74002ed7e",
-                    "category": "Prodotti Fisici"
-                }
-            ]
-        }
+@router.get("/courses/", response_model=Dict[str, List[Course]])
+async def get_courses():
+    """
+    Retrieves all courses from the database and organizes them by category.
+    Returns a dictionary where keys are category names and values are lists of courses.
+    """
+    # Fetch all courses from the database
+    courses = await db["courses"].find().to_list(100)
     
-    # If products exist in database, organize them by category
-    categorized_products = {}
-    for product in products:
-        category = product.get("category", "Altri Prodotti")
-        if category not in categorized_products:
-            categorized_products[category] = []
-        categorized_products[category].append(Product(**product))
-    
-    return categorized_products
+    # Organize courses by category
+    categorized_courses = {}
+    for course in courses:
+        category = course.get("category", "Altri Corsi")
+        if category not in categorized_courses:
+            categorized_courses[category] = []
+        categorized_courses[category].append(Course(**course))
+
+    return categorized_courses
 
 @router.get("/products/{product_id}", response_model=Product)
 async def get_product(product_id: int):

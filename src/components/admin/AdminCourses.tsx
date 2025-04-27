@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,14 +24,16 @@ const AdminCourses = () => {
     price: 0,
     instructor: "",
     image_url: "",
+    course_url: "", // Added course URL field
   });
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === "price" ? parseFloat(value) || 0 : value
+      [name]: name === "price" ? value : value
     }));
   };
 
@@ -55,6 +56,7 @@ const AdminCourses = () => {
         price: 0,
         instructor: "",
         image_url: "",
+        course_url: "", // Reset course URL
       });
     } catch (error) {
       console.error("Error adding course:", error);
@@ -172,6 +174,17 @@ const AdminCourses = () => {
                 placeholder="URL to course image"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="course_url">Course URL</Label>
+            <Input
+              id="course_url"
+              name="course_url"
+              value={formData.course_url}
+              onChange={handleChange}
+              placeholder="URL to access the course (e.g., https://example.com/courses/machine-learning)"
+            />
           </div>
 
           <div className="space-y-2">

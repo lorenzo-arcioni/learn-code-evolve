@@ -11,30 +11,30 @@ from pydantic_core import core_schema
 
 class PyObjectId(ObjectId):
     @classmethod
-    def __get_pydantic_core_schema__(cls, _source_type: Any, handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
-        return core_schema.no_info_after_validator_function(
-            cls.validate,
-            core_schema.str_schema(),
-        )
+    def __get_pydantic_core_schema__(
+        cls, 
+        _source_type: Any, 
+        handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        return core_schema.union_schema([
+            # Accetta già un ObjectId
+            core_schema.is_instance_schema(ObjectId),
+            # Oppure una stringa che può essere convertita a ObjectId
+            core_schema.chain_schema([
+                core_schema.str_schema(),
+                core_schema.no_info_plain_validator_function(
+                    lambda x: cls(x) if ObjectId.is_valid(x) else x
+                ),
+            ]),
+        ])
+    
+    # Questi metodi assicurano una corretta serializzazione JSON
+    def __jsonschema_serialize__(self):
+        return str(self)
     
     @classmethod
-    def validate(cls, v: Any) -> "PyObjectId":
-        if isinstance(v, ObjectId):
-            return cls(v)
-        if isinstance(v, str) and ObjectId.is_valid(v):
-            return cls(ObjectId(v))
-        raise ValueError("Invalid ObjectId")
-    
-    def __str__(self) -> str:
-        return str(super().__str__())
-    
-    def __repr__(self) -> str:
-        return f"PyObjectId({super().__str__()})"
-    
-    @classmethod
-    def __get_pydantic_json_schema__(cls, core_schema, handler):
+    def __get_pydantic_json_schema__(cls, _core_schema, handler):
         return {"type": "string"}
-
 # ----------------------
 # User Models
 # ----------------------
@@ -184,15 +184,22 @@ class Product(BaseModel):
 # ----------------------
 
 class Course(BaseModel):
-    id: int
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     title: str
     description: str
-    instructor: str
-    duration: str
-    level: str
-    price: str
-    image: str
     category: str
+    level: str
+    duration: str
+    price: str
+    instructor: str
+    image_url: str
+    url: str = ""
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str},  # Questo è importante per la serializzazione
+        "populate_by_name": True
+    }
 
 # ----------------------
 # Consultation Request
