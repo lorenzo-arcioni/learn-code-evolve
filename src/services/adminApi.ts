@@ -140,7 +140,44 @@ const adminApi = {
       console.error("Error fetching categories:", error);
       throw error;
     }
-  }
+  },
+
+  // Ottieni tutte le richieste di consulenza
+  getConsultationRequests: async () => {
+    const response = await fetch(`${BASE_URL}/admin/consultations`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("ml_academy_token")}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch consultation requests");
+    }
+
+    return response.json();
+  },
+
+  // Aggiorna lo stato di una richiesta di consulenza
+  updateConsultationStatus: async ({ id, status }) => {
+    const response = await fetch(`${BASE_URL}/admin/consultations/${id}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("ml_academy_token")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to update consultation request status");
+    }
+    return response.json();
+  },
+
 };
 
 export default adminApi;

@@ -172,12 +172,20 @@ class AvatarResponse(BaseModel):
 # ----------------------
 
 class Product(BaseModel):
-    id: int
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     title: str
     description: str
-    price: str
-    image: str
-    category: str
+    category: str  # Es: 'Consulenze', 'Prodotti Digitali', 'Prodotti Fisici'
+    price: str  # Es: '€45' o '€80/progetto'
+    image_url: Optional[str] = None  # URL immagine prodotto
+    is_active: bool = True  # Se il prodotto è disponibile
+    buy_url: Optional[str] = None  # URL per acquistare il prodotto
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str},
+        "populate_by_name": True
+    }
 
 # ----------------------
 # Course Models
@@ -206,11 +214,20 @@ class Course(BaseModel):
 # ----------------------
 
 class ConsultationRequest(BaseModel):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     firstName: str
     lastName: str
     email: str
     consultationType: str
     description: str
+    status: str = "pending"
+
+# Schema per l’update della richiesta di consulenza
+class ConsultationUpdate(BaseModel):
+    status: str
+    admin_notes: Optional[str] = None
+
+# Feedback Management
 
 class FeedbackCreate(BaseModel):
     name: str

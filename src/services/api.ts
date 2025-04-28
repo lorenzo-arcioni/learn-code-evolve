@@ -171,7 +171,7 @@ export const shopApi = {
     consultationType: string;
     description: string;
   }) => {
-    const response = await api.post('/consultation-requests/', requestData);
+    const response = await api.post('/consultation-request/', requestData);
     return response.data;
   },
 };

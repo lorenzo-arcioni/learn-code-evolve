@@ -27,6 +27,7 @@ import AdminFeedback from "@/components/admin/AdminFeedback";
 import AdminCourses from "@/components/admin/AdminCourses";
 import AdminProducts from "@/components/admin/AdminProducts";
 import AdminExercises from "@/components/admin/AdminExercises";
+import AdminConsultations from "@/components/admin/AdminConsultations";
 import { Separator } from "@/components/ui/separator";
 
 type User = {
@@ -73,6 +74,12 @@ const ProfilePage = () => {
     queryKey: ["user"],
     queryFn: authApi.getCurrentUser,
   });
+
+  useEffect(() => {
+    if (!user && !userLoading) {
+      navigate("/login");
+    }
+  }, [user, userLoading, navigate]);
 
   useEffect(() => {
     if (user) {
@@ -492,6 +499,16 @@ const ProfilePage = () => {
                   </CardHeader>
                   <CardContent>
                     <AdminExercises />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Consultation Requests</CardTitle>
+                    <CardDescription>View and manage user consultation requests</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <AdminConsultations />
                   </CardContent>
                 </Card>
 

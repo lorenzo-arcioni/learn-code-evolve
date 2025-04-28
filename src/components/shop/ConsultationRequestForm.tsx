@@ -12,10 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { authApi } from "@/services/api";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
+import { shopApi } from "@/services/api";
 
 interface ConsultationProduct {
   id: number;
@@ -27,7 +27,7 @@ interface ConsultationProduct {
 interface ConsultationRequestFormProps {
   isOpen: boolean;
   onClose: () => void;
-  product?: ConsultationProduct;
+  product: ConsultationProduct;
   consultationProducts: ConsultationProduct[];
 }
 
@@ -84,9 +84,9 @@ const ConsultationRequestForm: React.FC<ConsultationRequestFormProps> = ({
 
     if (isOpen) {
       checkAuth();
-      // Set initial consultation type if a product was selected
+      // Set consultation type from selected product
       if (product) {
-        setValue("consultationType", product.id.toString());
+        setValue("consultationType", product.title);
       }
     }
   }, [isOpen, product, setValue]);
@@ -94,13 +94,15 @@ const ConsultationRequestForm: React.FC<ConsultationRequestFormProps> = ({
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
     try {
-      // Here we would typically send the data to the server
-      // For now, we'll just simulate a successful submission
-      console.log("Consultation request submitted:", data);
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      // Chiama il backend per salvare la nuova richiesta
+      await shopApi.submitConsultationRequest({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        consultationType: data.consultationType,
+        description: data.description,
+      });
+  
       toast.success("La tua richiesta di consulenza è stata inviata con successo!");
       reset();
       onClose();
@@ -172,28 +174,17 @@ const ConsultationRequestForm: React.FC<ConsultationRequestFormProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="consultationType">Tipo di Consulenza</Label>
-              <Select
-                defaultValue={product ? product.id.toString() : ""}
-                onValueChange={(value) => setValue("consultationType", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleziona il tipo di consulenza" />
-                </SelectTrigger>
-                <SelectContent>
-                  {consultationProducts.map((consultProduct) => (
-                    <SelectItem key={consultProduct.id} value={consultProduct.id.toString()}>
-                      {consultProduct.title} - {consultProduct.price}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                id="consultationTypeDisplay"
+                value={`${product.title} - ${product.price}`}
+                disabled
+                className="bg-gray-100 cursor-not-allowed"
+              />
               <input
                 type="hidden"
-                {...register("consultationType", { required: "Seleziona un tipo di consulenza" })}
+                {...register("consultationType")}
+                value={product.title}
               />
-              {errors.consultationType && (
-                <p className="text-sm text-red-500">{errors.consultationType.message}</p>
-              )}
             </div>
 
             <div className="space-y-2">

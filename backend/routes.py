@@ -353,6 +353,53 @@ async def get_user_progress(current_user: UserInDB = Depends(get_current_active_
     }
 
 # Shop routes
+
+@router.get("/products/", response_model=Dict[str, List[Product]])
+async def get_products():
+    """
+    Retrieves all products from the database and organizes them by category.
+    Returns a dictionary where keys are category names and values are lists of products.
+    """
+    # Fetch all products from the database
+    products = await db["products"].find().to_list(100)
+    
+    # Organize products by category
+    categorized_products = {}
+    for product in products:
+        category = product.get("category", "Altri Prodotti")
+        if category not in categorized_products:
+            categorized_products[category] = []
+        categorized_products[category].append(Product(**product))
+
+    return categorized_products
+
+@router.get("/products/{product_id}", response_model=Product)
+async def get_product(product_id: int):
+    product = await db["products"].find_one({"id": product_id})
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return Product(**product)
+
+@router.post("/consultation-request/", response_model=Dict[str, Any])
+async def submit_consultation_request(
+    request: ConsultationRequest,
+):
+    request_data = request.dict()
+
+    # Add timestamp
+    request_data["created_at"] = datetime.utcnow()
+    
+    # Store in database
+    result = await db["consultations"].insert_one(request_data)
+    
+    return {
+        "success": True,
+        "message": "Consultation request submitted successfully",
+        "request_id": str(result.inserted_id)
+    }
+
+# Courses routes
+
 @router.get("/courses/", response_model=Dict[str, List[Course]])
 async def get_courses():
     """
@@ -370,108 +417,6 @@ async def get_courses():
             categorized_courses[category] = []
         categorized_courses[category].append(Course(**course))
 
-    return categorized_courses
-
-@router.get("/products/{product_id}", response_model=Product)
-async def get_product(product_id: int):
-    product = await db["products"].find_one({"id": product_id})
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    return Product(**product)
-
-@router.post("/consultation-requests/", response_model=Dict[str, Any])
-async def submit_consultation_request(
-    request: ConsultationRequest,
-    current_user: UserInDB = Depends(get_current_active_user)
-):
-    request_data = request.dict()
-    
-    # Add user information if available
-    if current_user:
-        request_data["user_id"] = str(current_user.id)
-        request_data["username"] = current_user.username
-    
-    # Add timestamp
-    request_data["created_at"] = datetime.utcnow()
-    
-    # Store in database
-    result = await db["consultation_requests"].insert_one(request_data)
-    
-    return {
-        "success": True,
-        "message": "Consultation request submitted successfully",
-        "request_id": str(result.inserted_id)
-    }
-
-# Courses routes
-@router.get("/courses/", response_model=Dict[str, List[Course]])
-async def get_courses():
-    # In a real app, fetch from database
-    # For now, return mock data
-    courses = await db["courses"].find().to_list(100)
-    if not courses:
-        # Default mock courses if none in database
-        return {
-            "Machine Learning": [
-                {
-                    "id": 1,
-                    "title": "Introduzione al Machine Learning",
-                    "description": "Un corso base che copre i fondamenti del machine learning",
-                    "instructor": "Prof. Marco Rossi",
-                    "duration": "8 settimane",
-                    "level": "Principiante",
-                    "price": "€99",
-                    "image": "https://images.unsplash.com/photo-1488229297570-58520851e868",
-                    "category": "Machine Learning"
-                },
-                {
-                    "id": 2,
-                    "title": "Deep Learning Avanzato",
-                    "description": "Approfondimento su reti neurali e architetture deep learning",
-                    "instructor": "Dr. Elena Bianchi",
-                    "duration": "10 settimane",
-                    "level": "Avanzato",
-                    "price": "€149",
-                    "image": "https://images.unsplash.com/photo-1503437313881-503a91226402",
-                    "category": "Machine Learning"
-                }
-            ],
-            "Matematica": [
-                {
-                    "id": 3,
-                    "title": "Algebra Lineare per ML",
-                    "description": "Concetti di algebra lineare essenziali per il machine learning",
-                    "instructor": "Prof. Luigi Verdi",
-                    "duration": "6 settimane",
-                    "level": "Intermedio",
-                    "price": "€79",
-                    "image": "https://images.unsplash.com/photo-1509228468518-180dd4864904",
-                    "category": "Matematica"
-                }
-            ],
-            "Algoritmi": [
-                {
-                    "id": 4,
-                    "title": "Algoritmi di Ottimizzazione",
-                    "description": "Studio degli algoritmi di ottimizzazione usati in ML",
-                    "instructor": "Dr. Paolo Neri",
-                    "duration": "7 settimane",
-                    "level": "Avanzato",
-                    "price": "€129",
-                    "image": "https://images.unsplash.com/photo-1496065187959-7f07b8353c55",
-                    "category": "Algoritmi"
-                }
-            ]
-        }
-    
-    # If courses exist in database, organize them by category
-    categorized_courses = {}
-    for course in courses:
-        category = course.get("category", "Altri Corsi")
-        if category not in categorized_courses:
-            categorized_courses[category] = []
-        categorized_courses[category].append(Course(**course))
-    
     return categorized_courses
 
 @router.get("/courses/{course_id}", response_model=Course)

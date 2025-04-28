@@ -8,7 +8,7 @@ from bson import ObjectId
 from models import (
     UserInDB, User, AdminUserUpdate, Feedback, FeedbackResponse,
     UserStats, ContentStats, InteractionStats, FeedbackStats, AdminDashboardStats,
-    Course
+    Course, ConsultationUpdate
 )
 from admin_middleware import get_current_admin
 from database import db
@@ -448,3 +448,62 @@ async def add_course(
         "message": "Course added successfully",
         "course_id": str(result.inserted_id)
     }
+
+# Consultation Management
+
+@router.get(
+    "/consultations",
+    response_model=List[Dict[str, Any]],
+    summary="Ottieni tutte le richieste di consulenza"
+)
+async def get_consultation_requests(
+    admin: UserInDB = Depends(get_current_admin)
+):
+    """
+    Restituisce tutte le richieste di consulenza.
+    """
+    # Usa to_list() per ottenere la lista dal cursor asincrono
+    docs = await db["consultations"].find().to_list(length=None)
+    for doc in docs:
+        doc["id"] = str(doc.pop("_id"))
+    return docs
+
+@router.patch(
+    "/consultations/{request_id}",
+    response_model=Dict[str, Any],
+    summary="Aggiorna lo stato di una richiesta di consulenza"
+)
+async def update_consultation_status(
+    request_id: str,
+    payload: ConsultationUpdate,
+    admin: UserInDB = Depends(get_current_admin)
+):
+    """
+    Aggiorna il campo `status` e opzionalmente `admin_notes` di una richiesta.
+    """
+    oid = ObjectId(request_id)
+    update_data = {"status": payload.status}
+    if payload.admin_notes is not None:
+        update_data["admin_notes"] = payload.admin_notes
+    update_data["updated_at"] = datetime.utcnow()
+
+    # update_one è anch'esso asincrono
+    result = await db["consultations"].update_one(
+        {"_id": oid},
+        {"$set": update_data}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Consultation request not found"
+        )
+
+    # Recupera il documento aggiornato
+    doc = await db["consultations"].find_one({"_id": oid})
+    if not doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Consultation request not found after update"
+        )
+    doc["id"] = str(doc.pop("_id"))
+    return doc
