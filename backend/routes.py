@@ -384,7 +384,9 @@ async def get_product(product_id: int):
 async def submit_consultation_request(
     request: ConsultationRequest,
 ):
-    request_data = request.dict()
+    request_data = request.dict(by_alias=True)
+
+    print(request_data)
 
     # Add timestamp
     request_data["created_at"] = datetime.utcnow()

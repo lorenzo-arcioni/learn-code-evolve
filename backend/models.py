@@ -214,7 +214,7 @@ class Course(BaseModel):
 # ----------------------
 
 class ConsultationRequest(BaseModel):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     firstName: str
     lastName: str
     email: str
@@ -297,6 +297,7 @@ class ContentStats(BaseModel):
     recent_content: List[dict]
 
 class InteractionStats(BaseModel):
+    total_views: int
     weekly_views: int
     monthly_views: int
     average_views: float

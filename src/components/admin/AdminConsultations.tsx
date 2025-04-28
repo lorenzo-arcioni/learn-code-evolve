@@ -131,34 +131,36 @@ const AdminConsultations = () => {
           <p>No consultation requests found.</p>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.map((req) => (
-              <TableRow key={req.id}>
-                <TableCell>{req.firstName} {req.lastName}</TableCell>
-                <TableCell>{req.email}</TableCell>
-                <TableCell>{req.consultationType}</TableCell>
-                <TableCell className="max-w-xs truncate">{req.description}</TableCell>
-                <TableCell>{renderBadge(req.status)}</TableCell>
-                <TableCell className="text-right">
-                  <Button size="sm" variant="outline" onClick={() => openDialog(req)}>
-                    Manage
-                  </Button>
-                </TableCell>
+        <div className="max-h-[500px] overflow-y-auto border rounded-md">
+          <Table>
+            <TableHeader className="sticky top-0 bg-background z-10">
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Action</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((req) => (
+                <TableRow key={req.id}>
+                  <TableCell>{req.firstName} {req.lastName}</TableCell>
+                  <TableCell>{req.email}</TableCell>
+                  <TableCell>{req.consultationType}</TableCell>
+                  <TableCell className="max-w-xs truncate">{req.description}</TableCell>
+                  <TableCell>{renderBadge(req.status)}</TableCell>
+                  <TableCell className="text-right">
+                    <Button size="sm" variant="outline" onClick={() => openDialog(req)}>
+                      Manage
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -183,7 +185,9 @@ const AdminConsultations = () => {
               </div>
               <div>
                 <Label>Description</Label>
-                <p>{selectedRequest.description}</p>
+                <div className="max-h-32 overflow-y-auto border rounded p-2 mt-1">
+                  <p>{selectedRequest.description}</p>
+                </div>
               </div>
               <div>
                 <Label>Status</Label>
@@ -217,3 +221,4 @@ const AdminConsultations = () => {
 };
 
 export default AdminConsultations;
+
