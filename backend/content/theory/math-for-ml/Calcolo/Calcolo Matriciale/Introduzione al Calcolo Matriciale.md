@@ -6,7 +6,7 @@ Il calcolo matriciale è una branca della matematica che si occupa dello studio 
 
 Di seguito sono elencati i principali argomenti del calcolo matriciale, ciascuno dei quali può essere approfondito in una nota separata:
 
-- [[Definizione di Matrice]]: Cos'è una matrice e come è strutturata.
+- [[Definizione di Scalare, Vettore, Matrice e Tensore]]: Cos'è un scalare, un vettore, una matrice e un tensore.
 - [[Tipi di Matrici]]: Matrici quadrate, diagonali, identità, triangolari, etc.
 - [[Operazioni Elementari sulle Matrici]]: Addizione, sottrazione, moltiplicazione per uno scalare.
 - [[Moltiplicazione di Matrici]]: Come si moltiplicano due matrici e proprietà.
