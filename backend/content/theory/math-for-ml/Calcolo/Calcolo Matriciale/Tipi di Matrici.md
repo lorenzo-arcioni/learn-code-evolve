@@ -75,6 +75,37 @@ Le matrici possono essere classificate in base alla loro struttura, proprietà a
   Q = \begin{pmatrix} 0 & 0 & 1 \\ 1 & 0 & 0 \\ 0 & 1 & 0 \end{pmatrix} \quad \Rightarrow \quad \text{Permutazione degli assi}. 
   $$  
 
+### d. Matrice di Gram ($A^T A$)  
+**Interpretazione Geometrica e Concettuale**:  
+La matrice di Gram rappresenta una **trasformazione simmetrica** che descrive come i vettori vengono **mappati nello spazio immagine di $A$ e poi riportati indietro nel dominio**.
+
+#### 🧠 Proprietà fondamentali:
+- **Simmetrica**: $(A^T A)^T = A^T A$.
+- **Semi-definita positiva**: $x^T A^T A x = \|Ax\|^2 \geq 0$ per ogni $x$.
+- **Autovalori reali e $\geq 0$**.
+- Se le colonne di $A$ sono linearmente indipendenti → $A^T A$ è **definita positiva**.
+- **Invarianza per rotazioni**: se $Q$ è ortogonale, allora $(AQ)^T (AQ) = Q^T A^T A Q$ → l’azione di $A^T A$ si adatta in modo coerente a rotazioni del dominio.
+
+#### 🧭 Cosa rappresentano gli **autovettori di $A^T A$**:
+
+- Sono le **direzioni privilegiate (da $A$) del dominio** che vengono solo **dilate o compresse**, ma **non ruotate** da $A^T A$.
+- Ogni autovettore $v$ soddisfa:
+  $$
+  A^T A v = \lambda v
+  $$
+  cioè, $v$ viene mantenuto nella **stessa direzione**, ma **scalato** di un fattore $\lambda$.
+- I valori $\sqrt \lambda$ rappresentano **quanto viene amplificata** quella direzione da $A$.
+
+
+#### ✅ Conclusione geometrica:
+
+- $x$ è stato prima **trasformato nel codominio** (via $A$),
+- poi **riportato nel dominio**, **non nella stessa direzione di partenza**, ma **in una direzione privilegiata da $A$**.
+- $A^T A$ **non ruota arbitrariamente**: essendo simmetrica, deforma lo spazio in modo **bilanciato e coerente con l’orientamento di $A$**.
+- La lunghezza di $x$ è aumentata a ogni passaggio → **amplificazione direzionale**.
+
+👉 Questo mostra **come $A^T A$ modifichi la geometria del dominio** per riflettere l’effetto complessivo della trasformazione $A$.
+
 ## 4. **Matrici per Applicazioni**
 
 ### a. Matrice di Vandermonde  

@@ -4,8 +4,32 @@ import os
 import markdown
 from fastapi import HTTPException
 import urllib.parse
+from markdown.extensions.codehilite import CodeHiliteExtension
+from markdown.extensions.toc import TocExtension
+from pygments.formatters import HtmlFormatter
 
 CONTENT_DIR = "content/theory"
+
+# Scegli lo stile Pygments per evidenziazione del codice (es: 'monokai', 'dracula', 'solarized-dark')
+PYGMENTS_STYLE = 'rrt'
+# Genera il CSS per i blocchi di codice .codehilite
+PYGMENTS_CSS = HtmlFormatter(style=PYGMENTS_STYLE).get_style_defs('.codehilite')
+
+# CSS per il pulsante "Copy"
+COPY_BUTTON_CSS = '''
+.code-wrapper { position: relative; }
+.copy-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    font-size: 0.8em;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background: #eee;
+}
+'''
 
 def protect_math_content(md_content):
     math_blocks = []
@@ -126,38 +150,99 @@ def build_hierarchy(categories):
     
     return hierarchy['subcategories']
 
+def process_image_links(html_content):
+    # Pattern che cattura l'intero <img ...> e dentro group(2) il valore di src
+    pattern = r'(<img\b[^>]*\bsrc="([^"]+)"[^>]*>)'
+
+    def replacer(match):
+        full_tag = match.group(1)   # es. <img src="..." class="...">
+        src_value = match.group(2)  # es. ../../../images/foo.jpg
+
+        # Se nel tag c'è class="..." che contiene tikz‑svg, non toccare nulla
+        if re.search(r'\bclass\s*=\s*"[^"]*\btikz-svg\b[^"]*"', full_tag):
+            return full_tag
+
+        # Altrimenti ricava il file e ricostruisci il src
+        filename = src_value.rsplit('/', 1)[-1]
+        new_src = f'/static/images/posts/{filename}'
+
+        # Sostituisci solo il src originale
+        return full_tag.replace(f'src="{src_value}"', f'src="{new_src}"')
+
+    return re.sub(pattern, replacer, html_content)
+
 def parse_markdown_content(file_path: str):
     try:
+        # Leggi il file Markdown
         with open(file_path, "r", encoding="utf-8") as f:
             md_content = f.read()
         
+        # Estrai titolo e rimuovi la prima riga (titolo)
         title = extract_title_from_markdown(md_content)
         md_content = "\n".join(md_content.split("\n")[1:])
         
+        # Proteggi i blocchi matematici
         protected_content, math_blocks = protect_math_content(md_content)
         
-        html_content = markdown.markdown(
-            protected_content, 
-            extensions=[
-                'fenced_code',
-                'tables',
-                'nl2br',
-                'md_in_html',
-                'extra',
-                'attr_list',
-                'smarty',
-                'toc',
-                'admonition',
-                'def_list',
-                'footnotes',
-                'sane_lists',
-            ]
+        # Configura le estensioni Markdown con evidenziazione del codice
+        extensions = [
+            'fenced_code',
+            'tables',
+            'nl2br',
+            'md_in_html',
+            'extra',
+            'attr_list',
+            'smarty',
+            'toc',
+            'admonition',
+            'def_list',
+            'footnotes',
+            'sane_lists',
+            CodeHiliteExtension(linenums=False, guess_lang=True, css_class='codehilite'),
+        ]
+        extension_configs = {
+            'codehilite': {
+                'linenums': False,
+                'guess_lang': True,
+                'css_class': 'codehilite'
+            }
+        }
+
+        # Converte Markdown in HTML
+        html_body = markdown.markdown(
+            protected_content,
+            extensions=extensions,
+            extension_configs=extension_configs
         )
 
+        # Avvolgi ogni blocco .codehilite in un .code-wrapper con pulsante copy inline
+        def wrap_code(match):
+            code_block = match.group(0)
+            # Pulsante con onclick inline per evitare problemi di esecuzione script
+            button = (
+                '<button class="copy-button" '
+                'onclick="(function(btn){'
+                'var code=btn.parentElement.querySelector(\'pre\');'
+                'if(code){navigator.clipboard.writeText(code.innerText);'
+                'btn.textContent=\'Copied!\';'
+                'setTimeout(function(){btn.textContent=\'Copy\';},2000);} '
+                '})(this)">Copy</button>'
+            )
+            return f'<div class="code-wrapper">\n' + button + '\n' + code_block + '\n</div>'
+
+        import re
+        html_with_wrappers = re.sub(r'(<div class="codehilite"[\s\S]*?<\/div>)', wrap_code, html_body)
+
+        # Inietta i CSS di Pygments e del pulsante copy
+        style_block = f"<style>{PYGMENTS_CSS}\n{COPY_BUTTON_CSS}</style>"
+        html_content = style_block + html_with_wrappers
+
+        # Ripristina formule matematiche e processa link/immagini
         html_content = restore_math_content(html_content, math_blocks)
         html_content = html_content.replace('\\_', '_')
         html_content = remove_math_paragraphs(html_content)
         html_content = process_obsidian_links(html_content)
+        html_content = process_image_links(html_content)
         
         return {
             "title": title,

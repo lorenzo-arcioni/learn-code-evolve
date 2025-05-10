@@ -2,15 +2,23 @@
 
 ## 🧠 Concetti chiave
 
-LSA è una tecnica di *apprendimento non supervisionato* utilizzata nel *Natural Language Processing (NLP)* per scoprire **argomenti latenti** nascosti all’interno di grandi collezioni di testi. È connessa ai seguenti concetti matematici fondamentali:
+LSA (anche noto come Latent Semantic Indexing (LSI)) è una tecnica di *apprendimento non supervisionato* utilizzata nel *Natural Language Processing (NLP)* per scoprire **argomenti latenti** nascosti all’interno di grandi collezioni di testi.
 
-- 📉 **Riduzione dimensionale**: passaggio da uno spazio vettoriale ad alta dimensione ($\mathbb{R}^N$) a uno spazio ridotto ($\mathbb{R}^M$, con $M \ll N$).
-- 🔢 **[[Singular Value Decomposition|Scomposizione ai valori singolari (SVD)]]**: tecnica algebrica per decomporre matrici.
-- 🔍 **Scoperta di argomenti latenti**: estrazione non supervisionata di strutture semantiche nei dati testuali.
-- 📦 **Densificazione delle rappresentazioni**: da rappresentazioni sparse e lunghe a vettori corti e densi.
+L'idea è cercare di estrarre dal testo dei "concetti" (o temi) nascosti nei documenti e rappresentare questi temi come combinazione lineare delle parole nel vocabolario. Come ad esempio:
+
+$$
+\text{DBMS} = \text{data} \cdot 0.8 + \text{system} \cdot 0.7 + \text{server} \cdot 0.6 
+$$
+
+dove:
+- DBMS è un concetto latente
+- data, system e server sono parole del vocabolario
+- $0.8, 0.7, 0.6$ sono i pesi che rappresentano la relazione tra questi tre termini e il concetto latente.
+
 ## 🧾 Matrice termine-documento
 
-Sia $\mathbf{X} \in \mathbb{R}^{|D| \times |V|}$ una matrice termine-documento o una matrice TF-IDF.  
+Sia $\mathbf{X} \in \mathbb{R}^{|D| \times |V|}$ una matrice termine-documento o una matrice TF-IDF calcolata a partire da un corpus.
+
 Dove:
 
 - $|D|$: numero di documenti
@@ -32,6 +40,7 @@ Questi argomenti non sono osservabili direttamente, ma possono emergere come com
 > **Non considerare $\mathbf{X}$ solo come dati grezzi: decompone la matrice in componenti strutturate.**
 
 La decomposizione serve per **estrarre informazione strutturale** e ridurre la dimensionalità mantenendo le componenti principali.
+
 ## 🧮 Decomposizione con SVD
 
 La decomposizione ai valori singolari è:
@@ -42,16 +51,18 @@ $$
 
 dove:
 
-- $\mathbf{U} \in \mathbb{R}^{|D| \times |D|}$: **matrice dei documenti**, ortonormale
-- $\mathbf{S} \in \mathbb{R}^{|D| \times |V|}$: **matrice diagonale** dei valori singolari (importanza degli assi)
-- $\mathbf{V} \in \mathbb{R}^{|V| \times |V|}$: **matrice dei termini**, ortonormale
+- $\mathbf{U} \in \mathbb{R}^{|D| \times |D|}$: **matrice dei documenti**, ortonormale, ci dice quanto ogni documento è correlato con gli altri.
+- $\mathbf{S} \in \mathbb{R}^{|D| \times |V|}$: **matrice diagonale** dei valori singolari (importanza degli assi) di $\mathbf{X}$.
+- $\mathbf{V} \in \mathbb{R}^{|V| \times |V|}$: **matrice dei termini**, ortonormale, ci dice quanto ogni termine è correlato con gli altri.
+
+Ma ovviamente, in questo modo, stiamo mantenendo **tutta l'informazione originale**, inclusi rumore e ridondanza. Questo accade perché, in assenza di riduzione, stiamo di fatto assegnando **un asse tematico** distinto a ogni documento e a ogni parola, senza generalizzare o cogliere **strutture comuni latenti**. L'idea dell'LSA è invece quella di **approssimare $\mathbf{X}$** mantenendo solo le componenti più rilevanti.
 
 ## ✂️ Approssimazione a rango ridotto (Truncated SVD)
 
 Spesso $\mathbf{X}$ è molto grande. Usiamo una versione **troncata**:
 
 $$
-\mathbf{X}_k = \mathbf{U}_k \mathbf{S}_k \mathbf{V}_k^\top
+\mathbf{X} \approx \mathbf{U}_k \mathbf{S}_k \mathbf{V}_k^\top
 $$
 
 dove:
@@ -85,8 +96,8 @@ $$
 
 ## 📌 Interpretazione semantica
 
-- Ogni **colonna di $\mathbf{V}_k$** rappresenta un *argomento latente*, ovvero una combinazione di termini che tende a comparire insieme nei documenti.
-- Ogni **riga di $\mathbf{U}_k$** descrive un documento secondo la sua affinità con questi argomenti latenti.
+- Ogni **colonna di $\mathbf{V}_k$** rappresenta un *argomento latente*, ovvero una combinazione di termini che tende a comparire insieme nei documenti. Ogni riga di $\mathbf{V}_k$ descrive un termine secondo la sua affinità con questi argomenti latenti.
+- Ogni **riga di $\mathbf{U}_k$** descrive un documento secondo la sua affinità con questi argomenti latenti. Ogni colonna di $\mathbf{U}_k$ rappresenta un documento secondo la sua affinità con questi argomenti latenti.
 - La matrice $\mathbf{S}_k$ scala ciascun asse latente in base alla sua **importanza** (varianza spiegata).
 
 ## 🎯 Perché funziona?
@@ -106,19 +117,41 @@ $$
 
 - Stiamo **proiettando $\mathbf{d}$ nello spazio latente** generato da SVD.
 - Questo spazio ha dimensione $k$, dove $k$ è scelto per catturare solo le direzioni semantiche più rilevanti.
+- Il vettore risultante $\mathbf{d}_k$ descrive il documento $\mathbf{d}$ secondo la sua affinità con questi argomenti latenti.
+- Stiamo praticamente riscrivendo $\mathbf{d}$ nel nuovo spazio latente, mantenendo solo le componenti significative.
 
 ## 🧠 Perché usare la SVD?
 
-Sia $\mathbf{X}$ una matrice termini-documenti. Allora:
-
-- $\mathbf{X}\mathbf{X}^\top$ misura le **correlazioni tra termini** (similitudine semantica).
-- Applicando la SVD otteniamo:
+La SVD permette di scomporre la matrice $\mathbf{X}$ come somma di **matrici di rango 1**, pesate dai valori singolari. In particolare:
 
 $$
-\mathbf{X} \mathbf{X}^\top = (\mathbf{U} \mathbf{S} \mathbf{V}^\top)(\mathbf{V} \mathbf{S}^\top \mathbf{U}^\top) = \mathbf{U} \mathbf{S} \mathbf{S}^\top \mathbf{U}^\top
+\mathbf{X} = \sum_{i=1}^r \sigma_i \mathbf{u}_i \mathbf{v}_i^\top
 $$
 
-- Quindi stiamo **decomponendo la correlazione** tra termini (o tra documenti) in modo geometrico.
+dove:
+
+- $r = \operatorname{rank}(\mathbf{X})$
+- $\sigma_i$ sono i valori singolari ordinati $\sigma_1 \geq \sigma_2 \geq \dots \geq \sigma_r \geq 0$
+- $\mathbf{u}_i$ è la $i$-esima colonna di $\mathbf{U}$
+- $\mathbf{v}_i$ è la $i$-esima colonna di $\mathbf{V}$
+
+Questa somma rappresenta **la ricostruzione esatta** di $\mathbf{X}$ come somma di componenti **semplici ma strutturate**.
+
+### ✂️ Approssimazione con i primi $k$ termini
+
+Per ottenere un’approssimazione di rango ridotto, **manteniamo solo i primi $k$ termini**:
+
+$$
+\mathbf{X}_k = \sum_{i=1}^k \sigma_i \mathbf{u}_i \mathbf{v}_i^\top
+$$
+
+Questa $\mathbf{X}_k$ è:
+
+- La **migliore approssimazione di rango $k$** della matrice $\mathbf{X}$ (in termini di norma di Frobenius)
+- Una versione **compressa e semanticamente significativa** della matrice originale
+- Ideale per eliminare rumore e migliorare generalizzazione
+
+In sintesi, l’SVD ci consente di rappresentare $\mathbf{X}$ come una somma pesata di “concetti latenti” $\mathbf{u}_i \mathbf{v}_i^\top$, e di mantenerne solo i più importanti per l’analisi.
 
 ## 🧭 Interpretazione geometrica
 
@@ -137,16 +170,34 @@ $$
 - Le **componenti principali** (valori singolari) indicano **quanto contribuisce ogni direzione**.
 - La **scalatura + rotazioni** preserva struttura ma elimina ridondanza.
 
-## ⚠️ Limiti di SVD
+## ⚠️ Limiti di LSA
 
-- La matrice $\mathbf{X}$ è **molto sparsa** e ad alta dimensionalità ($10^5 \times 10^5$ o più).
-- L'SVD ha un **costo computazionale elevato** ($O(n^2)$).
-- L’aggiunta di nuovi termini/documenti **richiede ricalcolo**.
-- Serve **pre-elaborazione** (es. TF-IDF) per bilanciare la frequenza delle parole.
+Nonostante l'efficacia dell'LSA nella scoperta di relazioni semantiche latenti, presenta alcune **limitazioni importanti**:
 
-## 🔚 Conclusione
+- **Assunzione di linearità**: LSA rappresenta concetti come combinazioni lineari di termini, ma molte relazioni linguistiche reali sono non lineari e contestuali.
+- **Incapacità di catturare la polisemia**: Un termine con più significati (es. "banca") viene rappresentato da un unico vettore, confondendo i contesti.
+- **Non considera l’ordine delle parole**: Poiché la matrice termine-documento ignora la sequenza, LSA perde tutte le informazioni sintattiche.
+- **Scelta di $k$ non banale**: Determinare il numero ottimale di concetti latenti è un compromesso tra generalizzazione e perdita di informazione.
+- **Computazionalmente costoso**: La decomposizione SVD su matrici molto grandi può richiedere notevoli risorse computazionali.
+- **Modello statico**: Una volta calcolata la SVD, aggiungere nuovi documenti richiede di ricalcolare tutto da capo.
 
-LSA consente di:
-- Ridurre dimensionalità mantenendo la struttura semantica
-- Rappresentare testi in uno spazio concettuale più interpretabile
-- Confrontare documenti e parole semanticamente
+## ✅ Conclusioni
+
+L'Analisi Semantica Latente (LSA) è stata una delle prime tecniche efficaci per **estrarre strutture semantiche latenti** da grandi collezioni testuali, e ha influenzato fortemente lo sviluppo successivo nel campo del NLP.
+
+Punti chiave:
+
+- Riduce la dimensionalità e il rumore semantico attraverso la SVD.
+- Cattura similarità concettuali tra parole e documenti anche in assenza di corrispondenza esplicita.
+- È utile per attività come clustering, retrieval semantico e visualizzazione.
+
+Tuttavia, le sue limitazioni l'hanno resa meno centrale con l’avvento di **modelli distribuiti e contestuali** più avanzati, come Word2Vec, GloVe e BERT. LSA resta comunque una base teorica utile per comprendere come si può passare da rappresentazioni sparse a rappresentazioni semantiche dense.
+
+## 🔗 Argomenti Correlati
+
+- **TF-IDF**: Metodo per ponderare l'importanza dei termini prima dell'applicazione dell'LSA.
+- **PCA (Principal Component Analysis)**: Tecnica affine alla SVD per la riduzione dimensionale.
+- **NMF (Non-negative Matrix Factorization)**: Alternativa a LSA che impone vincoli di non negatività.
+- **Word2Vec / GloVe**: Modelli neurali per l'apprendimento di rappresentazioni dense delle parole.
+- **BERT / Transformer**: Modelli basati su contesto, in grado di gestire la polisemia e la struttura sintattica.
+- **Topic Modeling (LDA)**: Approccio probabilistico per la scoperta di argomenti latenti nei documenti.

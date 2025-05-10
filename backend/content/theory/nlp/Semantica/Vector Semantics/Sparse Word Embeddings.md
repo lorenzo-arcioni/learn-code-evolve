@@ -195,6 +195,10 @@ Il Bag-of-Words rimane comunque una tecnica molto efficace per task semplici di 
   - In corpora di grandi dimensioni, il numero di termini cresce rapidamente, portando a **vettori estremamente grandi**.
 - **Prestazioni inferiori rispetto a vettori densi**:
   - In pratica, **rappresentazioni dense** (come Word2Vec, GloVe) risultano più efficaci e portano a migliori prestazioni in molti task di NLP.
+- **Analisi semantica basata su parole**: 
+  - I modelli sparsi non catturano relazioni sintattiche o contestuali profonde, limitandosi a rappresentare significati su base statica (conteggi e co-occorrenze), senza tener conto della dinamica del contesto in cui le parole appaiono.
+
+  - Esempio: i termini "bank" (banca) in "financial bank" e "river bank" avranno la stessa rappresentazione, poiché i modelli sparsi non distinguono tra sensi diversi della stessa parola a seconda del contesto.
 
 ## Conclusioni
 
@@ -213,6 +217,6 @@ Anche se modelli più recenti usano **vettori densi e latenti**, i VSM sparsi so
 
 - [[Introduzione alla Semantica Vettoriale]]
 - [[Misure di similarità vettoriale]]
-- [[Tecniche di pesatura (TF-IDF, PMI)]]
+- [[Tecniche di Weighting|Tecniche di pesatura (TF-IDF, PMI)]]
 - [[Problemi dei modelli vettoriali]]
 

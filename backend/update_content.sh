@@ -29,7 +29,7 @@ cp -rf "../../my-obsidian-vault/01_Matematica/$content_3"  ./content/theory/math
 cp -rf "../../my-obsidian-vault/01_Matematica/$content_4"  ./content/theory/math-for-ml/
 cp -rf "../../my-obsidian-vault/01_Matematica/$content_5"  ./content/theory/math-for-ml/
 cp -rf "../../my-obsidian-vault/01_Matematica/$content_6"  ./content/theory/math-for-ml/
-cp -rf "../../my-obsidian-vault/images/" ./static/images/posts/
+cp -rf "../../my-obsidian-vault/images/"* ./static/images/posts/
 
 ./update_tikz.sh
 

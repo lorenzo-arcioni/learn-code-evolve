@@ -2,15 +2,13 @@
 
 ## 📌 Introduzione
 
-La **Singular Value Decomposition (SVD)** è una delle tecniche più potenti e versatili dell’algebra lineare. È un metodo che ci permette di "guardare dentro" una matrice e capire il comportamento profondo della trasformazione lineare che rappresenta, rivelandone le direzioni principali di azione e le dimensioni lungo cui opera.
+La **Singular Value Decomposition (SVD)** è una delle tecniche più potenti e versatili dell'algebra lineare. È un metodo che ci permette di "guardare dentro" una matrice e capire il comportamento profondo della trasformazione lineare che rappresenta, rivelandone le direzioni principali di azione e le dimensioni lungo cui opera.
 
 Immagina una trasformazione come qualcosa che prende un insieme di punti e li sposta, allunga, schiaccia o ruota nello spazio. La SVD ci permette di scomporre questa trasformazione complessa in tre passaggi semplici e interpretabili:
 
 - una **rotazione iniziale**, che riallinea il sistema di riferimento;
 - una **scalatura**, che modifica le lunghezze lungo gli assi principali;
-- una **rotazione finale**, che orienta il risultato nello spazio d’uscita.
-
-In sostanza, SVD svela la struttura nascosta di qualsiasi matrice, anche se non è quadrata, anche se ha righe o colonne ridondanti, o persino se è "disturbata" dal rumore. 
+- una **rotazione finale**, che orienta il risultato nello spazio d'uscita.
 
 Questa capacità di scomporre e reinterpretare trasformazioni la rende una tecnica centrale in molti campi: compressione delle immagini, riconoscimento facciale, sistemi di raccomandazione, ricerca semantica nei testi, e tanto altro.
 
@@ -19,7 +17,7 @@ Questa capacità di scomporre e reinterpretare trasformazioni la rende una tecni
 
 Diamo ora un'intuizione dietro alla SVD per $m > n$ (in modo analogo si può definire anche per $m < n$).
 
-Sia $\{\mathbf v_1, \cdots, \mathbf v_n\}$ una base **ortonormale** dello spazio di partenza, con $\mathbf v_i \in \mathbb{R}^n$, e sia $\mathbf{A} \in \mathbb{R}^{m \times n}$ una matrice qualsiasi. Applichiamo $\mathbf{A}$ ai vettori della base:
+Sia $\{\mathbf v_1, \cdots, \mathbf v_n\}$ una base dello spazio di partenza, con $\mathbf v_i \in \mathbb{R}^n$, e sia $\mathbf{A} \in \mathbb{R}^{m \times n}$ una matrice qualsiasi. Applichiamo $\mathbf{A}$ ai vettori della base:
 
 $$
 \mathbf A \mathbf v_1 = \sigma_1 \mathbf u_1,\quad \cdots,\quad \mathbf A \mathbf v_n = \sigma_n \mathbf u_n
@@ -30,56 +28,41 @@ dove:
 - $\{\mathbf u_i\}_{i=1}^n$ sono versori (tali che $||\mathbf u_i|| = 1$).
 - $\{\sigma_i\}_{i=1}^n$ i fattori di scala dei $\mathbf u_i$.
 
-Quindi, dato che abbiamo una base ortonormale, ogni vettore $\mathbf x$ può essere scritto come:
+Quindi, dato che abbiamo una base, ogni vettore $\mathbf x$ può essere scritto come:
 
 $$
-\mathbf x = (\mathbf v_1 \cdot \mathbf x) \mathbf v_1 + \cdots + (\mathbf v_n \cdot \mathbf x) \mathbf v_n
+\mathbf x = z_1 \mathbf v_1 + \cdots + z_n \mathbf v_n
 $$
+
+dove $z_i$ è la coordinata $i$ del vettore $\mathbf x$ nella base $\{\mathbf v_1, \cdots, \mathbf v_n\}$.
 
 Applicando $\mathbf A$:
 
 $$
-\mathbf A \mathbf x = \sigma_1 (\mathbf v_1 \cdot \mathbf x) \mathbf u_1 + \cdots + \sigma_n (\mathbf v_n \cdot \mathbf x) \mathbf u_n
+\mathbf A \mathbf x = \sigma_1 z_1 \mathbf u_1 + \cdots + \sigma_n z_n \mathbf u_n
 $$
 
 Sostituendo termini, si ottiene la forma canonica:
 
 $$
-\mathbf{A} \mathbf{x} = \sum_{i=1}^{n} \sigma_i (\mathbf{v}_i \cdot \mathbf{x}) \mathbf{u}_i
+\mathbf{A} \mathbf{x} = \sum_{i=1}^{n} \sigma_i z_i \mathbf{u}_i
 $$
 
 Cerchiamo ora di scrivere questa formula in forma matriciale:
 
 ### 1. **Raggruppiamo le proiezioni**
 
-Definiamo:
-- $z_i = \mathbf{v}_i \cdot \mathbf{x}$: la componente di $\mathbf{x}$ nella direzione di $\mathbf{v}_i$
-- Il vettore completo delle proiezioni:
-  $$
+Definiamo il vettore completo delle proiezioni:
+$$
   \mathbf{z} =
   \begin{bmatrix}
   z_1 \\
   \vdots \\
   z_n
   \end{bmatrix}
-  =
-  \begin{bmatrix}
-  \mathbf{v}_1^T \mathbf{x} \\
-  \vdots \\
-  \mathbf{v}_n^T \mathbf{x}
-  \end{bmatrix}
-  = V^T \mathbf{x}
-  $$
-  dove 
-  $$
-  V^T =
-  \begin{bmatrix}
-  \text{-----} \mathbf{v}_1^T \text{-----} \\
-  \vdots \\
-  \text{-----} \mathbf{v}_n^T \text{-----}
-  \end{bmatrix}
-  $$
-è la matrice che contiene i vettori $\mathbf{v}_i$ come righe.
+  = V^{-1} \mathbf{x}
+$$
+dove $V^{-1}$ è la matrice del cambiamento di base, che mappa da $\{\mathbf{e}_1, \cdots, \mathbf{e}_n\}$ a $\{\mathbf{v}_1, \cdots, \mathbf{v}_n\}$.
 
 ### 2. **Applichiamo la scalatura**
 
@@ -149,8 +132,7 @@ U =
 \end{bmatrix}
 \in\mathbb R^{m\times m},
 $$
-una matrice ortonormale completa. Si sceglie $\{\mathbf u_{n+1},\dots,\mathbf u_m\}$ come base ortonormale del **nucleo** di $A^T$.
-
+una matrice completa. Si sceglie $\{\mathbf u_{n+1},\dots,\mathbf u_m\}$ in modo che la matrice $U$ contenga tutti vettori indipendenti.
 
 ### 5. **Forma finale della trasformazione**
 
@@ -170,7 +152,7 @@ Senza ulteriori **restrizioni sulla base** $\{\mathbf v_i\}$, la scomposizione o
 - la decomposizione $A = U \Sigma V^T$ **non ha una struttura particolarmente utile o interpretabile**, ed è solo una riscrittura di $A = U \Sigma V^{-1}$,
 - le coordinate $z_i$ devono essere ottenute tramite inversione $V^{-1} \mathbf{x}$ e **non come semplici proiezioni scalari**, come nel caso ortonormale.
 
-Inoltre, se la base $\{\mathbf v_i\}$ **non è allineata con gli autospazi di $A^T A$**, la decomposizione non evidenzia il comportamento geometrico fondamentale di $A$, ovvero:
+Inoltre, se la base $\{\mathbf v_i\}$ **non contiene gli autovettori (normalizzati) di $A^T A$**, la decomposizione non evidenzia il comportamento geometrico fondamentale di $A$, ovvero:
 
 - $A^T A$ è **simmetrica e semi-definita positiva**, e rappresenta l'operazione:  
   > *applica $A$, poi proietta indietro con $A^T$*.  
@@ -186,17 +168,92 @@ Quindi, se imponiamo che $V$ contenga gli **autovettori ortonormali di $A^T A$**
 ✅ valori singolari $\sigma_i = \sqrt{\lambda_i}$ (radici degli autovalori),  
 ✅ una visione chiara: $A$ **ruota**, **scala**, e poi **ruota di nuovo**.
 
-👉 In sintesi: **la SVD è potente solo se $V$ e $U$ sono ortogonali** e legati allo spettro di $A^T A$ e $A A^T$, rispettivamente. Altrimenti, la decomposizione perde la sua forza geometrica e computazionale.
+👉 In sintesi: **la SVD è potente solo se $V$ (e quindi $U$) sono ortogonali** e legati allo spettro di $A^T A$ e $A A^T$, rispettivamente. Altrimenti, la decomposizione perde la sua forza geometrica e computazionale.
 
-## Definizione Formale Completa
+Quindi, scegliendo la base $V$ che ha per vettori gli autovettori della matrice $A^TA$, abbiamo la garanzia che i vettori $\{\mathbf v_i\}_{i=1}^n$ siano ortogonali tra loro e, inoltre, che puntino verso le direzioni dove avviene il massimo stretch della trasformazione $A$; i cosidetti **Right Singular Vectors**. In questo modo, otteniamo un'altra importante proprietà: **la matrice $U$ contiene gli autovettori di $AA^T$**, i cosidetti **Left Singular Vectors**.
 
-Quindi, scegliendo la base $V$ che ha per vettori gli autovettori della matrice $A^TA$, abbiamo la garanzia che i vettori $\{\mathbf v_i\}_{i=1}^n$ siano ortogonali tra loro e, inoltre, che puntino verso le direzioni dove avviene il massimo stretch della trasformazione $A$; i cosidetti **Singular Vectors**.
+Questa proprietà è fondamentale perché:
+
+- **Scomposizione geometrica**:  
+  $$
+  A = U \, \Sigma \, V^T
+  $$
+  descrive $A$ come rotazione → stretching → rotazione.
+
+- **Riduzione del problema**:  
+  Permette di lavorare in basi dove $A$ agisce diagonalmente, semplificando l'analisi e la risoluzione dei sistemi.
+
+- **Stabilità numerica**:  
+  Le matrici ortogonali $U$ e $V$ non amplificano errori, rendendo la SVD ideale per il calcolo numerico.
+
+- **Compressione e filtraggio**:  
+  I valori singolari ordinano l'importanza delle direzioni → utile per approssimazione a rango ridotto e PCA.
+
+- **Pseudoinversa e minimi quadrati**:  
+  La SVD fornisce una soluzione ottima anche in presenza di sistemi non invertibili o sovradeterminati.
+
+## 👻 Proprietà spettrali di $A^T A$ e $A A^T$
+
+**Ipotesi**  
+Sia $\{\mathbf v_i\}_{i=1}^n$ un insieme di vettori ortonormali tali che  
+$$
+A^T A\,\mathbf v_i = \sigma_i^2\,\mathbf v_i,
+\qquad i=1,\dots,n
+$$  
+cioè i $\mathbf v_i$ sono già autovettori di $A^T A$ (e quindi ortogonali) con autovalori $\sigma_i^2$.
+
+**Obiettivo**  
+Dimostrare che  
+1. $\{\mathbf u_i\}$, definiti da $\mathbf u_i = \tfrac1{\sigma_i}A\,\mathbf v_i$, sono autovettori di $A A^T$.  
+2. Gli autovalori corrispondenti sono anch'essi $\sigma_i^2$.
+
+1.  **Definizione di $\mathbf u_i$**  
+    Poiché $\mathbf v_i$ è autovettore di $A^T A$ con autovalore $\sigma_i^2$, poniamo  
+    $$
+      \mathbf u_i \;:=\;\frac{A\,\mathbf v_i}{\|A\,\mathbf v_i\|}
+      = \frac{A\,\mathbf v_i}{\sigma_i}.
+    $$  
+    Perché $\sigma_i > 0$ (valore singolare), questa definizione è ben posta e $\|\mathbf u_i\|=1$.
+
+2.  **Calcolo di $A A^T\,\mathbf u_i$**  
+    Partiamo da  
+    $$
+      \mathbf u_i = \frac1{\sigma_i}A\,\mathbf v_i
+      \;\Longrightarrow\;
+      A^T\,\mathbf u_i = \frac1{\sigma_i}A^T A\,\mathbf v_i
+      = \frac1{\sigma_i}\,\sigma_i^2\,\mathbf v_i
+      = \sigma_i\,\mathbf v_i.
+    $$  
+    Ora applichiamo $A$ a questa relazione:
+    $$
+      A A^T\,\mathbf u_i
+      = A\bigl(\sigma_i\,\mathbf v_i\bigr)
+      = \sigma_i\,A\,\mathbf v_i
+      = \sigma_i\bigl(\sigma_i\,\mathbf u_i\bigr)
+      = \sigma_i^2\,\mathbf u_i.
+    $$
+
+3.  **Conclusione sugli autovettori di $A A^T$**  
+    Abbiamo mostrato che
+    $$
+      (A A^T)\,\mathbf u_i = \sigma_i^2\,\mathbf u_i,
+    $$
+    dunque ciascuno $\mathbf u_i$ è autovettore di $A A^T$ con autovalore $\sigma_i^2$.
+
+4.  **Ortonormalità**  
+    - Gli $\mathbf v_i$ erano ortonormali per ipotesi.  
+    - Gli $\mathbf u_i$, essendo autovettori di una matrice simmetrica, sono anch'essi ortonormali (si verifica $u_i^T u_j=0$ per $i\neq j$ e $=1$ per $i=j$ in modo analogo al caso di $v_i$).
+
+**Risultato finale**  
+- $A^T A$ ha autovettori $\{\mathbf v_i\}$ con autovalori $\{\sigma_i^2\}$.  
+- $A A^T$ ha autovettori $\{\mathbf u_i\}$ con gli stessi autovalori $\{\sigma_i^2\}$.  
+- Entrambe le famiglie di autovettori sono ortonormali.
 
 ## 📐 Interpretazione Geometrica
 
 Questa formula mostra come la SVD scompone ogni trasformazione lineare in una **sequenza ordinata** di operazioni:
 
-1. **Rotazione/Riflessione** (o cambio di base) del vettore di input nello spazio delle $\mathbf{v}_i$, tramite $\mathbf{V}^T$.
+1. **Rotazione/Riflessione** (o cambio di base) del vettore di input nello spazio delle $\mathbf{v}_i$, tramite $\mathbf{V}^T = V^{-1}$.
 2. **Scalatura anisotropa** lungo queste direzioni, con coefficienti $\sigma_i$.
 3. **Rotazione/Riflessione** finale nello spazio delle $\mathbf{u}_i$, tramite $\mathbf{U}$.
 
@@ -247,7 +304,7 @@ Questa decomposizione corrisponde alla seguente **pipeline geometrica**:
 - La trasformazione $\mathbf{U}$ agisce come un cambio di base nello spazio del codominio:
 essa assegna un significato geometrico e direzionale al risultato, stabilendo in quale direzione finale andrà ogni componente scalata.
 
-- Geometricamente, $\mathbf{U}$ determina l’orientamento dell’ellisse risultante: mentre $\mathbf{V}^T$ allinea l’ingresso alle direzioni principali e $\Sigma$ deforma (scala) secondo quelle direzioni, $\mathbf{U}$ decide come disporre quella deformazione nello spazio originale d’uscita.
+- Geometricamente, $\mathbf{U}$ determina l'orientamento dell'ellisse risultante: mentre $\mathbf{V}^T$ allinea l'ingresso alle direzioni principali e $\Sigma$ deforma (scala) secondo quelle direzioni, $\mathbf{U}$ decide come disporre quella deformazione nello spazio originale d'uscita.
 
 ### 🌌 Esempio Visivo
 
@@ -260,93 +317,9 @@ L'immagine illustra geometricamente la decomposizione a valori singolari (SVD) d
 
 - **$\mathbf{V}^T$** ruota il cerchio nella direzione delle **direzioni principali** (quelle dove deve avvenire lo stretching).
 - **$\mathbf{\Sigma}$** schiaccia o dilata il cerchio lungo i suoi assi principali, trasformandolo in un ellisse.
-- **$\mathbf{U}$** riallinea (ruota o riflette) l’ellisse nell’output space, secondo le direzioni principali dell'immagine di $\mathbf{A}$, cioè gli autovettori di $\mathbf{A} \mathbf{A}^T$.
+- **$\mathbf{U}$** riallinea (ruota o riflette) l'ellisse nell'output space, secondo le direzioni principali dell'immagine di $\mathbf{A}$, cioè gli autovettori di $\mathbf{A} \mathbf{A}^T$.
 
 Risultato: da una figura simmetrica e isotropa (cerchio), otteniamo un oggetto deformato ma **con significato direzionale**.
-
-### 🧬 Interpretazione concettuale
-
-- Le **direzioni principali** (singular vectors) sono gli **assi di massima variazione** dell’azione di $\mathbf{A}$.
-- I **valori singolari** dicono **quanto** $\mathbf{A}$ "stira" lo spazio lungo quei vettori.
-- Questa decomposizione permette di **ridurre la dimensionalità** preservando la maggior parte dell’informazione (proiettando sui primi $k$ assi).
-
-### 👻 Proprietà spettrali di $A^T A$ e $A A^T$
-
-A partire dall’**SVD** $A = U\Sigma V^T$, mostriamo che:
-
-- $\{\mathbf{v}_i\}$ sono autovettori di $A^T A$,
-- $\{\mathbf{u}_i\}$ sono autovettori di $A A^T$,
-- entrambe le famiglie sono ortonormali.
-
-Per definizione
-$$
-A\,\mathbf{v}_i = \sigma_i\,\mathbf{u}_i.
-$$
-
-1. **Espansione di $A^T \mathbf{u}_i$ nella base $\{\mathbf{v}_j\}$**  
-   Poiché $\{\mathbf{v}_j\}_{j=1}^n$ è una base ortonormale di $\mathbb{R}^n$, e $A^T \mathbf u$ è un vettore di $\mathbb{R}^n$, possiamo scrivere  
-   $$
-   A^T \mathbf{u}_i
-   = \sum_{j=1}^n \bigl(\mathbf{v}_j^T (A^T \mathbf{u}_i)\bigr)\,\mathbf{v}_j.
-   $$
-   E quindi  
-   $$
-   \mathbf{v}_j^T (A^T \mathbf{u}_i)
-   = (A\,\mathbf{v}_j)^T\,\mathbf{u}_i.
-   $$
-
-2. **Calcolo del coefficiente $(A\,\mathbf{v}_j)^T\mathbf{u}_i$**  
-   Dall’SVD, $A\,\mathbf{v}_j = \sigma_j\,\mathbf{u}_j$. Quindi  
-   $$
-   (A\,\mathbf{v}_j)^T \mathbf{u}_i
-   = (\sigma_j\,\mathbf{u}_j)^T \mathbf{u}_i
-   = \sigma_j\,(\mathbf{u}_j^T \mathbf{u}_i)
-   = \sigma_j\,\delta_{ji},
-   $$
-   dove $\delta_{ji}$ è il delta di Kronecker (uguale a 1 se $j=i$, 0 altrimenti). Questo semplicemente perché i vettori $\{\mathbf{u}_j\}_{j=1}^n$ sono ortonormali, e quindi il loro prodotto scalare vale $1$ solo se $j=i$ (e $0$ altrimenti).
-
-3. **Semplificazione della somma**  
-   $$
-   A^T \mathbf{u}_i
-   = \sum_{j=1}^n \sigma_j\,\delta_{ji}\,\mathbf{v}_j
-   = \sigma_i\,\mathbf{v}_i.
-   $$
-
-4. **Conclusione sullo spettro di $A^T A$**  
-   Ora applichiamo $A^T$ all’equazione originale:
-   $$
-     A^T\bigl(A\,\mathbf{v}_i\bigr)
-     = A^T(\sigma_i\,\mathbf{u}_i)
-     = \sigma_i\,(A^T \mathbf{u}_i)
-     = \sigma_i\,(\sigma_i\,\mathbf{v}_i)
-     = \sigma_i^2\,\mathbf{v}_i.
-   $$
-   Da cui:
-   $$
-     (A^T A)\,\mathbf{v}_i = \sigma_i^2\,\mathbf{v}_i,
-   $$
-   cioè $\mathbf{v}_i$ è autovettore di $A^T A$ con autovalore $\sigma_i^2$.
-
-5. **Conclusione sullo spettro di $A A^T$**  
-   Allo stesso modo, partiamo da:
-   $$
-   A\,\mathbf{v}_i = \sigma_i\,\mathbf{u}_i.
-   $$
-   Applichiamo $A$ a entrambi i lati dell'identità:
-   $$
-   AA^T \mathbf{u}_i = A\left(A^T \mathbf{u}_i\right).
-   $$
-   Dalla parte precedente, sappiamo che $A^T \mathbf{u}_i = \sigma_i\,\mathbf{v}_i$, quindi:
-   $$
-   A A^T \mathbf{u}_i = A(\sigma_i\,\mathbf{v}_i) = \sigma_i\,A \mathbf{v}_i = \sigma_i\,(\sigma_i\,\mathbf{u}_i) = \sigma_i^2\,\mathbf{u}_i.
-   $$
-   Quindi
-   $$
-   (A A^T)\,\mathbf{u}_i = \sigma_i^2\,\mathbf{u}_i,
-   $$
-   cioè $\mathbf{u}_i$ è autovettore di $A A^T$ con autovalore $\sigma_i^2$.
-
-Pertanto, sia $A^T A$ che $A A^T$ ammettono una base ortonormale di autovettori, e i rispettivi autovalori sono i quadrati dei valori singolari $\sigma_i^2$.
 
 ### 🧮 Forma matriciale compatta
 
@@ -396,10 +369,10 @@ Queste espressioni confermano in forma compatta che:
 - Gli autovalori in entrambi i casi sono i quadrati dei valori singolari contenuti in $\Sigma$.
 
 - **Caso $m > n$:**  
-  $U \in \mathbb{R}^{m \times m}$ è ortogonale. I primi $n$ autovettori corrispondono agli autovalori $\sigma_i^2 > 0$ di $A A^\top$; i restanti $m - n$ sono autovettori associati all’autovalore $0$.  
+  $U \in \mathbb{R}^{m \times m}$ è ortogonale. I primi $n$ autovettori corrispondono agli autovalori $\sigma_i^2 > 0$ di $A A^\top$; i restanti $m - n$ sono autovettori associati all'autovalore $0$.  
 
 - **Caso $n > m$:**  
-  $V \in \mathbb{R}^{n \times n}$ è ortogonale. I primi $m$ autovettori corrispondono agli autovalori $\sigma_i^2 > 0$ di $A^\top A$; i restanti $n - m$ sono autovettori associati all’autovalore $0$.  
+  $V \in \mathbb{R}^{n \times n}$ è ortogonale. I primi $m$ autovettori corrispondono agli autovalori $\sigma_i^2 > 0$ di $A^\top A$; i restanti $n - m$ sono autovettori associati all'autovalore $0$.  
 
 
 ## 📏 Proprietà
@@ -407,7 +380,7 @@ Queste espressioni confermano in forma compatta che:
 - I vettori di $\mathbf{U}$ e $\mathbf{V}$ formano **basi ortonormali** per lo spazio delle righe e delle colonne.
 - I **valori singolari** $\sigma_i$ rappresentano la **quantità di informazione** trasportata lungo ciascuna direzione.
 - $\text{rank}(\mathbf{A}) =$ numero di valori singolari non nulli.
-- Può essere vista come una generalizzazione dell’autodecomposizione (eigendecomposition) per matrici rettangolari.
+- Può essere vista come una generalizzazione dell'autodecomposizione (eigendecomposition) per matrici rettangolari.
 
 ## 🔧 Riduzione Dimensionale tramite Truncated SVD
 
@@ -438,7 +411,7 @@ $$
    cioè $\mathbf{A}_k$ è la **migliore approssimazione di rango $k$** di $\mathbf{A}$ in norma di Frobenius (somma dei quadrati degli scarti).
 
 🚀 **Utilità**:
-- **Compressione dei dati**: conserviamo solo l’informazione essenziale.
+- **Compressione dei dati**: conserviamo solo l'informazione essenziale.
 - **Riduzione del rumore**: eliminiamo direzioni deboli o casuali.
 - **Estrazione di concetti latenti**: fondamentale in NLP, raccomandazione, clustering.
 
@@ -451,6 +424,31 @@ $$
 | Eigendecomp | solo quadrate     | $\mathbf{A} = \mathbf{Q} \mathbf{\Lambda} \mathbf{Q}^{-1}$ |
 
 Nota: SVD è più generale e robusta.
+
+## ⚙️ Algoritmo per Calcolare la SVD
+
+Sebbene abbiamo discusso a fondo il significato geometrico e le proprietà della decomposizione SVD, **non abbiamo ancora affrontato il modo in cui essa viene effettivamente calcolata**.
+
+In breve, calcolare la SVD di una matrice $\mathbf{A} \in \mathbb{R}^{m \times n}$ significa trovare tre matrici $\mathbf{U}, \mathbf{\Sigma}, \mathbf{V}$ tali che:
+
+$$
+\mathbf{A} = \mathbf{U} \mathbf{\Sigma} \mathbf{V}^T
+$$
+
+L'algoritmo per trovare queste matrici **non si basa semplicemente su manipolazioni algebriche dirette**, ma coinvolge:
+
+- la **diagonalizzazione** delle matrici simmetriche $A^T A$ e $A A^T$,
+- il **calcolo degli autovalori e autovettori** di queste matrici,
+- e la costruzione dei vettori singolari normalizzati a partire da queste informazioni.
+
+In pratica, si ricorre a **tecniche numeriche stabili** come:
+- il metodo delle **rotazioni di Jacobi**,
+- la **bidiagonalizzazione** di $\mathbf{A}$ tramite trasformazioni di Householder,
+- e successivi algoritmi iterativi per l'estrazione dei valori singolari.
+
+👉 Per i dettagli sul **procedimento numerico e algoritmico** per ottenere la SVD, rimandiamo alla seguente nota dedicata:
+
+📎 [[Algoritmo per la SVD]]
 
 ## ⚠️ Limiti della SVD
 

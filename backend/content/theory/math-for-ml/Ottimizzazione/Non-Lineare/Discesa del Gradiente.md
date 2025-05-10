@@ -4,13 +4,14 @@ La discesa del gradiente (*Gradient Descent*, GD) è un algoritmo iterativo di m
 
 Un aspetto cruciale della discesa del gradiente è che, nel caso di funzioni **non convesse**, non possiamo garantire che l'algoritmo trovi il minimo globale. Infatti, tali funzioni possono presentare **molteplici minimi locali**, e il punto di convergenza dipenderà dalle condizioni iniziali del modello.
 
-L'intuizione alla base della discesa del gradiente è piuttosto semplice:  
+L'intuizione alla base della discesa del gradiente è piuttosto semplice:
+
 1. Si parte da un punto iniziale nello spazio dei parametri.  
 2. Si calcola il gradiente della funzione obiettivo in quel punto, il quale indica la direzione di massima crescita.  
 3. Per minimizzare la funzione, ci si sposta nella direzione opposta a quella del gradiente, effettuando un "passo" in quella direzione.  
 4. Questo processo viene ripetuto fino al raggiungimento di un criterio di arresto (convergenza).
 
-<img src="/home/lorenzo/Documenti/GitHub/my-obsidian-vault/images/gradient-descent.jpg" alt="Gradient Descent">
+<img src="../../../images/gradient-descent.jpg" alt="Gradient Descent">
 
 *Figura 1.0: Discesa del Gradiente su una funzione loss non convessa*
 
@@ -21,6 +22,7 @@ $$
 $$
 
 dove:
+
 - $\Theta^{(t)}$ rappresenta i parametri del modello all'iterazione $t$,
 - $\alpha$ è il **tasso di apprendimento** (*learning rate*), un iperparametro che determina l'ampiezza del passo nella direzione del gradiente,
 - $\nabla \ell(\Theta^{(t)})$ è il gradiente della funzione di perdita $\ell$ rispetto ai parametri $\Theta$.

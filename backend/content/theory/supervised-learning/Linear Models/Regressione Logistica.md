@@ -291,7 +291,7 @@ f''(x) = \underbrace{\frac{e^{x}}{(1 + e^{x})^2}}_{\text{Sempre positivo}} > 0 \
 $$
 
 **Conclusione**:  
-$-\ln(\sigma(x))$ è **strettamente convessa** su tutto $\mathbb{R}$. $\square$
+- $\ln(\sigma(x))$ è **strettamente convessa** su tutto $\mathbb{R}$. $\square$
 
 ### Dimostrazione della Convessità della Log-Loss
 
