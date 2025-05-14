@@ -319,6 +319,53 @@ Un esempio classico è la seguente funzione:
 - $f(x, y) = 0$ se $(x, y) = (0, 0)$
 - $f(x, y) = \frac{x^2 y}{x^2 + y^2}$ altrimenti
 
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Funzione definita a tratti
+def f(x, y):
+    with np.errstate(divide='ignore', invalid='ignore'):
+        z = np.where((x == 0) & (y == 0), 0, (x**2 * y) / (x**2 + y**2))
+    return z
+
+# Griglia
+x = np.linspace(-1, 1, 200)
+y = np.linspace(-1, 1, 200)
+X, Y = np.meshgrid(x, y)
+Z = f(X, Y)
+
+# Figura Matplotlib
+fig = plt.figure(figsize=(12, 8))  # circa 1920x1080
+ax = fig.add_subplot(111, projection='3d')
+
+# Superficie
+surf = ax.plot_surface(X, Y, Z, cmap='viridis', edgecolor='none', alpha=0.9)
+
+# Punto non differenziabile all'origine
+ax.scatter(0, 0, 0, color='red', s=50)
+ax.text(0, 0, 0.1, '(0, 0)', color='red', fontsize=12, ha='center')
+
+# Etichette
+ax.set_title('Funzione non differenziabile in (0, 0)', fontsize=14)
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_zlabel('f(x, y)')
+
+# Vista iniziale
+ax.view_init(elev=30, azim=45)
+
+# Salvataggio in HD
+plt.tight_layout()
+plt.savefig("gradient-non-differentiable.png", dpi=300)
+plt.show()
+```
+
+<img src="../../../images/gradient-non-differentiable.png" alt="Gradient Descent 3" width="1000" style="display: block; margin: 0 auto;">
+
+*Figura 1.3: Funzione non differenziabile*
+
 Questa funzione ha derivate parziali definite ovunque, ma una di esse (in particolare rispetto a $y$) è **discontinua nell’origine**, e questo significa che $f$ **non è differenziabile** in $(0, 0)$.
 
 ### Implicazioni pratiche
@@ -420,7 +467,7 @@ plt.show()
 ```
 
 <p align="center">
-  <img src="../../../images/learning-rate-comparison-sgd.png" alt="Confronto tra diversi learning rate">
+  <img src="../../../images/learning-rate-comparison-sgd.png" alt="Confronto tra diversi learning rate" height="600" width="1800">
 </p>
 
 *Figura 2.0: Confronto tra learning rate troppo piccolo, troppo grande e ottimale*
