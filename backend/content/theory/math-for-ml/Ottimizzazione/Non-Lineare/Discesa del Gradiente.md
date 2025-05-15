@@ -2,6 +2,8 @@
 
 La discesa del gradiente (*Gradient Descent*, GD) è un algoritmo iterativo di minimizzazione del primo ordine. Viene definito **iterativo** poiché esegue una sequenza di aggiornamenti successivi per determinare un minimo locale della funzione obiettivo, a partire da una condizione iniziale.
 
+Un aspetto cruciale della discesa del gradiente è che, nel caso di funzioni **non convesse**, non possiamo garantire che l'algoritmo trovi il minimo globale. Infatti, tali funzioni possono presentare **molteplici minimi locali**, e il punto di convergenza dipenderà dalle condizioni iniziali del modello.
+
 È possibile che invece di un minimo locale (o globale), l'algoritmo si interrompa su un punto di sella. Durante la discesa del gradiente, l’algoritmo cerca punti dove il valore della funzione diminuisce. Se si avvicina a un punto di sella, il gradiente (cioè l'indicazione della direzione in cui scendere) può diventare molto piccolo, e questo può **rallentare o bloccare** temporaneamente l’ottimizzazione. Anche se i punti di sella esistono, è **molto improbabile** che la discesa del gradiente si fermi esattamente su uno di essi, per due motivi principali:
 
 1. **Instabilità numerica**: i punti di sella sono instabili — basta una piccola variazione (come un errore di arrotondamento o un passo leggermente diverso) per spingere l’algoritmo lontano dal punto di sella.
@@ -9,8 +11,6 @@ La discesa del gradiente (*Gradient Descent*, GD) è un algoritmo iterativo di m
 2. **Alta dimensionalità**: negli spazi ad alta dimensione, i punti di sella sono molto più frequenti dei minimi, ma anche molto più "facili da evitare". È molto raro "cadere" perfettamente in un punto di sella, e ancor più raro restarci a lungo.
 
 In pratica, anche se ci si può avvicinare a un punto di sella, la discesa del gradiente tende naturalmente a superarlo e continuare verso un minimo.
-
-Un aspetto cruciale della discesa del gradiente è che, nel caso di funzioni **non convesse**, non possiamo garantire che l'algoritmo trovi il minimo globale. Infatti, tali funzioni possono presentare **molteplici minimi locali**, e il punto di convergenza dipenderà dalle condizioni iniziali del modello.
 
 L'intuizione alla base della discesa del gradiente è piuttosto semplice:
 
@@ -26,44 +26,179 @@ L'intuizione alla base della discesa del gradiente è piuttosto semplice:
 Formalmente, il processo di aggiornamento iterativo può essere espresso come:
 
 $$
-\Theta^{(t+1)} \leftarrow \Theta^{(t)} - \alpha \nabla \ell(\Theta^{(t)})
+\Theta^{(t+1)} \leftarrow \Theta^{(t)} - \alpha \nabla \ell_{\Theta^{(t)}}
 $$
 
 dove:
 
 - $\Theta^{(t)}$ rappresenta i parametri del modello all'iterazione $t$,
 - $\alpha$ è il **tasso di apprendimento** (*learning rate*), un iperparametro che determina l'ampiezza del passo nella direzione del gradiente,
-- $\nabla \ell(\Theta^{(t)})$ è il gradiente della funzione di perdita $\ell$ rispetto ai parametri $\Theta$.
+- $\nabla \ell_{\Theta^{(t)}}$ è il gradiente della funzione di perdita $\ell$ rispetto ai parametri $\Theta$.
 
 Ovviamente, per poter calcolare correttamente il gradiente di una funzione, e quindi eseguire correttamente la discesa del gradiente, abbiamo bisogno che la funzione $\ell$ sia differenziabile in ogni suo punto.
 
 Infatti, non basta che sia definita la derivata parziale di $\ell$ rispetto a ogni singola variabile $\theta_i$, ma è necessario che $\ell$ abbia un gradiente continuo.
 
-Possiamo anche, tramite l'unrolling ricorsivo, riscrivere esplicitamente $\Theta^{(t+1)}$ come:
+## Differenziabilità
 
+Come abbiamo visto, il gradiente è l’elemento chiave nel funzionamento della discesa del gradiente. Ma ci si potrebbe chiedere: **tutte le funzioni di perdita permettono il calcolo del gradiente?**
+
+La risposta è: **non sempre**.
+
+Non tutte le funzioni sono **differenziabili**, cioè non tutte ammettono un gradiente ben definito in ogni punto del dominio. Questo è un problema rilevante, perché **la discesa del gradiente richiede che la funzione sia differenziabile**, altrimenti il gradiente potrebbe non esistere in certi punti e l’algoritmo potrebbe bloccarsi o dare risultati errati.
+
+### Derivate parziali definite $≠$ Differenziabilità
+
+In una funzione di più variabili, avere **tutte le derivate parziali definite** non è sufficiente per garantire la differenziabilità. Infatti, può succedere che tutte le derivate esistano, ma non siano continue — e questo è un segnale che la funzione **non è veramente differenziabile**.
+
+Un esempio classico è la seguente funzione:
+
+- $f(x, y) = 0$ se $(x, y) = (0, 0)$
+- $f(x, y) = \frac{x^2 y}{x^2 + y^2}$ altrimenti
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Funzione definita a tratti
+def f(x, y):
+    with np.errstate(divide='ignore', invalid='ignore'):
+        z = np.where((x == 0) & (y == 0), 0, (x**2 * y) / (x**2 + y**2))
+    return z
+
+# Griglia
+x = np.linspace(-1, 1, 200)
+y = np.linspace(-1, 1, 200)
+X, Y = np.meshgrid(x, y)
+Z = f(X, Y)
+
+# Figura Matplotlib
+fig = plt.figure(figsize=(12, 8))  # circa 1920x1080
+ax = fig.add_subplot(111, projection='3d')
+
+# Superficie
+surf = ax.plot_surface(X, Y, Z, cmap='viridis', edgecolor='none', alpha=0.9)
+
+# Punto non differenziabile all'origine
+ax.scatter(0, 0, 0, color='red', s=50)
+ax.text(0, 0, 0.1, '(0, 0)', color='red', fontsize=12, ha='center')
+
+# Etichette
+ax.set_title('Funzione non differenziabile in (0, 0)', fontsize=14)
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_zlabel('f(x, y)')
+
+# Vista iniziale
+ax.view_init(elev=30, azim=45)
+
+# Salvataggio in HD
+plt.tight_layout()
+plt.savefig("gradient-non-differentiable.png", dpi=300)
+plt.show()
+```
+
+<img src="../../../images/gradient-non-differentiable.png" alt="Gradient Descent 3" width="1000" style="display: block; margin: 0 auto;">
+
+*Figura 1.3: Funzione non differenziabile*
+
+Questa funzione ha derivate parziali definite ovunque, ma sono **discontinue nell’origine**, e questo significa che $f$ **non è differenziabile** in $(0, 0)$.
+
+#### 1. Derivate parziali in $(0,0)$  
+Per definizione,
 $$
-\begin{align*}
-\Theta^{(1)}   &= \Theta^{(0)} - \alpha \nabla \ell (\Theta^{(0)})\\
-\Theta^{(2)}   &= \Theta^{(1)} - \alpha \nabla \ell (\Theta^{(1)})\\
-               &= \Theta^{(0)} - \alpha \nabla \ell (\Theta^{(0)}) - \alpha \nabla \ell (\Theta^{(1)})\\
-\vdots\\
-\Theta^{(t+1)} &= \Theta^{(0)} - \alpha \sum_{i=0}^{t} \nabla \ell(\Theta^{(i)}).
-\end{align*}
+f_x(0,0)
+=\lim_{h\to0}\frac{f(h,0)-f(0,0)}{h}
+=\lim_{h\to0}\frac{0-0}{h}=0,
+\qquad
+f_y(0,0)
+=\lim_{k\to0}\frac{f(0,k)-f(0,0)}{k}
+=\lim_{k\to0}\frac{0-0}{k}=0.
 $$
 
-Il criterio di arresto più comune è la verifica della norma del gradiente:
-
+#### 2. Espressioni di $f_x$ e $f_y$ per $(x,y)\neq(0,0)$  
+Usando la derivazione di un quoziente:
 $$
-\|\nabla \ell(\Theta^{(t)})\| \leq \epsilon
+f(x,y)=\frac{u(x,y)}{v(x,y)},
+\quad
+u=x^2y,\quad v=x^2+y^2,
+$$
+$$
+f_x
+=\frac{u_x\,v - u\,v_x}{v^2}
+=\frac{(2x y)(x^2+y^2) - (x^2y)(2x)}{(x^2+y^2)^2}
+=\frac{2x y^3}{(x^2+y^2)^2},
+$$
+$$
+f_y
+=\frac{u_y\,v - u\,v_y}{v^2}
+=\frac{(x^2)(x^2+y^2) - (x^2y)(2y)}{(x^2+y^2)^2}
+=\frac{x^4 - x^2y^2}{(x^2+y^2)^2}.
 $$
 
-dove $\epsilon$ è una soglia positiva molto piccola che determina il livello di precisione desiderato.
+#### 3. Limiti lungo la retta $y = m x$  
+Sostituiamo $y=mx$ con $x\to0$:
+$$
+f_x(x,mx)
+=\frac{2x\,(mx)^3}{\bigl(x^2+(mx)^2\bigr)^2}
+=\frac{2m^3\,x^4}{x^4\,(1+m^2)^2}
+=\frac{2m^3}{(1+m^2)^2},
+$$
+$$
+f_y(x,mx)
+=\frac{x^4 - x^2\,(mx)^2}{\bigl(x^2+(mx)^2\bigr)^2}
+=\frac{x^4(1-m^2)}{x^4\,(1+m^2)^2}
+=\frac{1-m^2}{(1+m^2)^2}.
+$$
+Questi valori dipendono dal parametro $m$. In particolare:
+- Se $m=0$, $f_x\to0$ e $f_y\to1$.  
+- Se $m=1$, $f_x\to\dfrac{2}{4}=\tfrac12$ e $f_y\to0$.
+
+#### 4. Conclusione sulla discontinuità  
+Poiché
+$$
+\lim_{(x,y)\to(0,0)}\nabla f(x,y)
+$$
+assume valori diversi a seconda della retta di avvicinamento ($m$ diverso), il gradiente **non è continuo** in $(0,0)$, pur avendo entrambe le derivate parziali esistenti e finite.
+
+### Implicazioni pratiche
+
+Fortunatamente, nella pratica si usano spesso funzioni di perdita ben progettate, che sono **lisce e differenziabili** quasi ovunque. Tuttavia, **non è raro incontrare funzioni di perdita non differenziabili**, ad esempio con funzioni *piecewise* o attivazioni come la *ReLU*.
+
+In questi casi, si adottano diverse strategie per rendere il problema trattabile:
+
+- **Modifica o sostituzione della funzione** con una variante liscia (es. ReLU → Softplus)
+- **Tecniche come il "reparametrization trick"** nei modelli generativi come le VAE, che permettono il passaggio del gradiente anche quando la funzione non è differenziabile nel senso classico
+
+In conclusione, **la differenziabilità è un requisito fondamentale per l’applicazione diretta della discesa del gradiente**, ma esistono metodi e tecniche per aggirare o gestire in modo efficace i casi in cui essa venga meno.
 
 ## Interpretazione Geometrica
 
 Dal punto di vista geometrico, la discesa del gradiente segue una traiettoria nello spazio dei parametri, cercando il punto in cui la funzione di perdita assume un valore minimo. Se la funzione è convessa, l'algoritmo convergerà al minimo globale; altrimenti, si fermerà in un minimo locale. 
 
 È importante notare che, a causa della precisione finita delle macchine, difficilmente si raggiungerà un punto esattamente stazionario, ma ci si fermerà quando la variazione della funzione di perdita diventa trascurabile.
+
+Volendo possiamo anche, tramite l'unrolling ricorsivo, riscrivere esplicitamente $\Theta^{(t+1)}$ come:
+
+$$
+\begin{align*}
+\Theta^{(1)}   &= \Theta^{(0)} - \alpha \nabla \ell_{\Theta^{(0)}}\\
+\Theta^{(2)}   &= \Theta^{(1)} - \alpha \nabla \ell_{\Theta^{(1)}}\\
+               &= \Theta^{(0)} - \alpha \nabla \ell_{\Theta^{(0)}} - \alpha \nabla \ell_{\Theta^{(1)}}\\
+\vdots\\
+\Theta^{(t+1)} &= \Theta^{(0)} - \alpha \sum_{i=0}^{t} \nabla \ell_{\Theta^{(i)}}.
+\end{align*}
+$$
+
+Il criterio di arresto più comune è la verifica della norma del gradiente:
+
+$$
+\|\nabla \ell_{\Theta^{(t)}}\| \leq \epsilon
+$$
+
+dove $\epsilon$ è una soglia positiva molto piccola che determina il livello di precisione desiderato.
+
 
 ## Proprietà del Gradiente
 
@@ -302,89 +437,12 @@ plt.show()
 
 *Figura 1.2: Ortogonalità tra il vettore tangente alla curva di livello e il vettore -gradiente*
 
-## Differenziabilità
-
-Come abbiamo visto, il gradiente è l’elemento chiave nel funzionamento della discesa del gradiente. Ma ci si potrebbe chiedere: **tutte le funzioni di perdita permettono il calcolo del gradiente?**
-
-La risposta è: **non sempre**.
-
-Non tutte le funzioni sono **differenziabili**, cioè non tutte ammettono un gradiente ben definito in ogni punto del dominio. Questo è un problema rilevante, perché **la discesa del gradiente richiede che la funzione sia differenziabile**, altrimenti il gradiente potrebbe non esistere in certi punti e l’algoritmo potrebbe bloccarsi o dare risultati errati.
-
-### Derivate parziali ≠ Differenziabilità
-
-In una funzione di più variabili, avere **tutte le derivate parziali definite** non è sufficiente per garantire la differenziabilità. Infatti, può succedere che tutte le derivate esistano, ma non siano continue — e questo è un segnale che la funzione **non è veramente differenziabile**.
-
-Un esempio classico è la seguente funzione:
-
-- $f(x, y) = 0$ se $(x, y) = (0, 0)$
-- $f(x, y) = \frac{x^2 y}{x^2 + y^2}$ altrimenti
-
-```python
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-
-# Funzione definita a tratti
-def f(x, y):
-    with np.errstate(divide='ignore', invalid='ignore'):
-        z = np.where((x == 0) & (y == 0), 0, (x**2 * y) / (x**2 + y**2))
-    return z
-
-# Griglia
-x = np.linspace(-1, 1, 200)
-y = np.linspace(-1, 1, 200)
-X, Y = np.meshgrid(x, y)
-Z = f(X, Y)
-
-# Figura Matplotlib
-fig = plt.figure(figsize=(12, 8))  # circa 1920x1080
-ax = fig.add_subplot(111, projection='3d')
-
-# Superficie
-surf = ax.plot_surface(X, Y, Z, cmap='viridis', edgecolor='none', alpha=0.9)
-
-# Punto non differenziabile all'origine
-ax.scatter(0, 0, 0, color='red', s=50)
-ax.text(0, 0, 0.1, '(0, 0)', color='red', fontsize=12, ha='center')
-
-# Etichette
-ax.set_title('Funzione non differenziabile in (0, 0)', fontsize=14)
-ax.set_xlabel('x')
-ax.set_ylabel('y')
-ax.set_zlabel('f(x, y)')
-
-# Vista iniziale
-ax.view_init(elev=30, azim=45)
-
-# Salvataggio in HD
-plt.tight_layout()
-plt.savefig("gradient-non-differentiable.png", dpi=300)
-plt.show()
-```
-
-<img src="../../../images/gradient-non-differentiable.png" alt="Gradient Descent 3" width="1000" style="display: block; margin: 0 auto;">
-
-*Figura 1.3: Funzione non differenziabile*
-
-Questa funzione ha derivate parziali definite ovunque, ma una di esse (in particolare rispetto a $y$) è **discontinua nell’origine**, e questo significa che $f$ **non è differenziabile** in $(0, 0)$.
-
-### Implicazioni pratiche
-
-Fortunatamente, nella pratica si usano spesso funzioni di perdita ben progettate, che sono **lisce e differenziabili** quasi ovunque. Tuttavia, **non è raro incontrare funzioni di perdita non differenziabili**, ad esempio con funzioni *piecewise* o attivazioni come la ReLU.
-
-In questi casi, si adottano diverse strategie per rendere il problema trattabile:
-
-- **Modifica o sostituzione della funzione** con una variante liscia (es. ReLU → Softplus)
-- **Tecniche come il "reparametrization trick"** nei modelli generativi come le VAE, che permettono il passaggio del gradiente anche quando la funzione non è differenziabile nel senso classico
-
-In conclusione, **la differenziabilità è un requisito fondamentale per l’applicazione diretta della discesa del gradiente**, ma esistono metodi e tecniche per aggirare o gestire in modo efficace i casi in cui essa venga meno.
-
 ## Learning Rate
 
 Nella legge di aggiornamento della discesa del gradiente:
 
 $$
-\Theta^{(t+1)} = \Theta^{(t)} - \alpha \nabla \ell(\Theta^{(t)}),
+\Theta^{(t+1)} = \Theta^{(t)} - \alpha \nabla \ell_{\Theta^{(t)}},
 $$
 
 il parametro $\alpha$ gioca un ruolo fondamentale. Questo parametro si chiama **learning rate** (tasso di apprendimento) ed è un **iperparametro**, cioè non viene appreso durante l’ottimizzazione, ma deve essere scelto manualmente (o tramite ricerca automatica).
@@ -467,14 +525,14 @@ plt.show()
 ```
 
 <p align="center">
-  <img src="../../../images/learning-rate-comparison-sgd.png" alt="Confronto tra diversi learning rate" height="600" width="1800">
+  <img src="../../../images/learning-rate-comparison-sgd.png" alt="Confronto tra diversi learning rate">
 </p>
 
 *Figura 2.0: Confronto tra learning rate troppo piccolo, troppo grande e ottimale*
 
 ### Line Search
 
-Una strategia per scegliere dinamicamente il valore di $\alpha$ è il **line search**: una procedura che, una volta nota la direzione di discesa $-\nabla \ell(\Theta^{(t)})$, cerca il valore di $\alpha$ che **massimizza la diminuzione** della funzione di perdita lungo quella direzione. In pratica, si risolve un piccolo problema di ottimizzazione interno a ogni passo.
+Una strategia per scegliere dinamicamente il valore di $\alpha$ è il **line search**: una procedura che, una volta nota la direzione di discesa $-\nabla \ell_{\Theta^{(t)}}$, cerca il valore di $\alpha$ che **massimizza la diminuzione** della funzione di perdita lungo quella direzione. In pratica, si risolve un piccolo problema di ottimizzazione interno a ogni passo.
 
 Questa tecnica è più costosa, ma può migliorare la stabilità e l'efficacia dell’ottimizzazione.
 
@@ -547,6 +605,12 @@ Qui calcoliamo ogni volta il gradiente su $m$ esempi, quindi un epoca in questo 
 
 - Vantaggi: bilancia precisione e velocità, sfrutta l'efficienza computazionale del calcolo vettoriale su GPU.
 - È la scelta più comune nelle reti neurali moderne.
+
+#### Considerazioni sull'uso dei Mini-Batch
+
+- Ogni mini-batch può essere elaborato in **parallelo**, caratteristica che si sposa bene con l'aumento di disponibilità e potenza delle **architetture parallele** come le **GPGPU** (General Purpose Graphic Processing Unit), sempre più usate nei compiti di deep learning. In questo caso, la dimensione massima del batch è limitata dall’hardware e dalla rappresentazione in memoria dei dati.
+
+- Mini-batch di **piccole dimensioni** possono avere un **effetto regolarizzante**, introducendo **varianza nella stima del gradiente**. Questo può impedire all’algoritmo di raggiungere il minimo esatto, contribuendo così a **ridurre l’overfitting**. Tuttavia, batch troppo piccoli (nel limite, apprendimento online con un solo dato per volta) introducono **una varianza troppo elevata**, richiedendo l’uso di un **learning rate piccolo** (meglio se **decrescente**) per mantenere la stabilità dell’algoritmo.
 
 ### Confronto Grafico
 
@@ -674,7 +738,7 @@ Le tecniche moderne includono anche ottimizzatori avanzati (come Adam, RMSProp, 
 
 Uno dei principali limiti della discesa del gradiente standard è la sua **lentezza di convergenza** in presenza di **vallate strette e profonde** nella funzione di perdita, oppure in direzioni con **curvature molto diverse** (ad esempio funzioni “a sella” o “a banana”). In questi casi, l’algoritmo può oscillare lungo le direzioni di maggiore curvatura, rallentando notevolmente il percorso verso il minimo.
 
-Per mitigare questo problema, viene introdotto il concetto di **momentum**, ispirato alla fisica newtoniana: invece di aggiornare i parametri unicamente in base al gradiente attuale, si tiene conto anche della **direzione e velocità del movimento passato**, accumulando “inerzia” lungo le direzioni coerenti.
+Per mitigare questo problema, viene introdotto il concetto di **momentum**, ispirato alla fisica newtoniana: invece di aggiornare i parametri unicamente in base al gradiente attuale e al learning rate, si tiene conto anche della **direzione e velocità del movimento passato**, accumulando “inerzia” lungo le direzioni coerenti.
 
 ### Formula dell'Aggiornamento con Momentum
 
@@ -682,7 +746,7 @@ L’algoritmo introduce una variabile ausiliaria $\mathbf{v}^{(t)}$ che rapprese
 
 $$
 \begin{aligned}
-\mathbf{v}^{(t+1)} &= \lambda \cdot \mathbf{v}^{(t)} - \alpha \cdot \nabla \ell(\Theta^{(t)}), \\
+\mathbf{v}^{(t+1)} &= \lambda \cdot \mathbf{v}^{(t)} - \alpha \cdot \nabla \ell_{\Theta^{(t)}}, \\
 \Theta^{(t+1)} &= \Theta^{(t)} + \mathbf{v}^{(t+1)}.
 \end{aligned}
 $$
@@ -691,7 +755,7 @@ dove:
 
 - $\alpha$ è il **learning rate**,
 - $\lambda \in [0,1)$ è il **coefficiente di momentum**, che controlla il peso del termine di velocità accumulato (valori tipici: $\lambda = 0.9$),
-- $\nabla \ell(\Theta^{(t)})$ è il gradiente della funzione di perdita all’iterazione $t$,
+- $\nabla \ell_{\Theta^{(t)}}$ è il gradiente della funzione di perdita all’iterazione $t$,
 - $\mathbf{v}^{(t)}$ è la velocità accumulata al passo precedente. Al tempo $t=0$, $\mathbf{v}^{(0)} = 0$.
 
 ### Interpretazione Intuitiva
@@ -699,11 +763,89 @@ dove:
 - Quando i gradienti puntano nella **stessa direzione** in iterazioni successive, il termine $\lambda \cdot \mathbf{v}^{(t)}$ **rafforza** la velocità in quella direzione, rendendo l’avanzamento più rapido.
 - Quando la direzione del gradiente **cambia spesso** (es. oscillazioni), il momentum **smorza le variazioni**, stabilizzando l’andamento e migliorando la convergenza.
 
-<img src="../../../images/momentum.jpg" alt="Momentum Gradient Descent">
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Funzione di costo
+def f(x, y):
+    return 0.5 * (x**2 + 10 * y**2)
+
+# Gradiente della funzione
+def grad_f(x, y):
+    return np.array([x, 10 * y])
+
+# GD semplice
+def gradient_descent(start, lr, steps):
+    x = np.zeros((steps, 2))
+    x[0] = start
+    for i in range(1, steps):
+        grad = grad_f(*x[i-1])
+        x[i] = x[i-1] - lr * grad
+    return x
+
+# GD con momentum
+def gradient_descent_momentum(start, lr, steps, gamma):
+    x = np.zeros((steps, 2))
+    v = np.zeros(2)
+    x[0] = start
+    for i in range(1, steps):
+        grad = grad_f(*x[i-1])
+        v = gamma * v + lr * grad
+        x[i] = x[i-1] - v
+    return x
+
+# Parametri
+start = np.array([-4.0, 2.0])
+steps = 80
+lr = 0.01
+gamma = 0.75
+optimum = np.array([0.0, 0.0])  # punto di minimo
+
+# Percorsi
+path_gd = gradient_descent(start, lr, steps)
+path_mom = gradient_descent_momentum(start, lr, steps, gamma)
+
+# Contorno della funzione
+X, Y = np.meshgrid(np.linspace(-5, 5, 400), np.linspace(-3, 3, 400))
+Z = f(X, Y)
+levels = np.logspace(-0.5, 3, 20)
+
+# Setup figura allungata
+fig, axs = plt.subplots(2, 1, figsize=(12, 5), dpi=150)
+
+for ax, path, title in zip(
+    axs,
+    [path_gd, path_mom],
+    ['(a) Without momentum', '(b) With momentum']
+):
+    ax.contour(X, Y, Z, levels=levels, cmap='Greens_r', alpha=0.1)
+    ax.plot(path[:, 0], path[:, 1], color='darkorange', marker='o', markersize=2)
+    
+    # Starting point e Solution
+    ax.annotate('Starting Point', xy=path[0], xytext=(-4.8, 2.3), arrowprops=dict(arrowstyle='->'))
+    ax.annotate('Solution', xy=path[-1], xytext=(-2.5, -1.7), arrowprops=dict(arrowstyle='->'))
+    
+    # Ottimo
+    ax.plot(*optimum, 'o', color='steelblue', markersize=6)
+    ax.annotate('Optimum', xy=optimum, xytext=(0.5, 0.3), textcoords='data', ha='left',
+                arrowprops=dict(arrowstyle='->', color='black'))
+
+    ax.set_title(title)
+    ax.axis('off')
+
+plt.tight_layout()
+plt.show()
+```
+
+<img src="../../../images/momentum.png" alt="Momentum Gradient Descent">
 
 *Figura 1.3: La discesa del gradiente con momentum permette una traiettoria più fluida e veloce verso il minimo, evitando oscillazioni e rallentamenti dovuti a curvature diverse nelle direzioni principali.*
 
 ### Derivazione della forma chiusa per GD con Momentum
+
+
+L’obiettivo è derivare una **forma chiusa** (non ricorsiva) dell’aggiornamento dei parametri al tempo $t+1$, in funzione di tutti i gradienti calcolati fino a quel momento. In questo modo possiamo analizzare in modo più chiaro **l’effetto cumulativo del momentum**, che combina i gradienti passati pesandoli secondo una **decadimento geometrico** controllato dall' iperparametro $\lambda$. Questo permette di evidenziare come il metodo favorisca le direzioni persistenti nel tempo e smorzi le oscillazioni dovute a cambiamenti locali nel paesaggio della funzione di perdita.
 
 Partiamo dalle **equazioni ricorsive** della discesa del gradiente con momentum:
 
@@ -814,57 +956,182 @@ Questa espansione chiarisce perché il momentum aiuta a **smussare oscillazioni*
 
 In sintesi, il momentum fornisce un **bilanciamento intelligente tra memoria del passato e reattività al presente**, migliorando l’efficienza di convergenza e la stabilità numerica della discesa del gradiente.
 
-## Limiti Superiori Asintotici
+## Limiti Superiori Asintotici: Convergenza di GD e SGD
 
-Per problemi **convessi** esiste sempre un minimizzatore globale $f^*$. Vogliamo capire quante iterazioni servono ai nostri algoritmi basati su discesa del gradiente (GD) o discesa del gradiente stocastica (SGD) per avvicinarsi a $f^*$ con un’accuratezza $\rho$. Formalmente consideriamo l’ineguaglianza:
+Per problemi **convessi** (dove la funzione di loss ha un solo minimo globale), possiamo analizzare quanto velocemente i metodi di discesa del gradiente si avvicinano al minimo ottimo.
+
+Assumiamo di voler trovare un punto $\Theta$ tale che la **loss** ottenuta sia entro una precisione $\rho > 0$ dall
+
+dove:
+- $\ell(f_\Theta)$ è la loss del modello corrente,
+- $\ell(f^*)$ è la loss ottima (raggiunta in teoria dal miglior modello),
+- $\rho$ è l'accuratezza desiderata.
+
+### 📌 Notazione
+
+- $n$ = numero di esempi nel dataset di training  
+- $d$ = numero di parametri (dimensione di $\Theta$)  
+- $\kappa$ = **numero di condizionamento**, ovvero $\kappa = L/\mu$, dove:
+  - $L$ è la **costante di Lipschitz** del gradiente: $\|\nabla \ell(\Theta_1) - \nabla \ell(\Theta_2)\| \le L \|\Theta_1 - \Theta_2\|$
+  - $\mu$ è la **costante di forte convessità**: $\ell(\Theta) \ge \ell(f^*) + \frac{\mu}{2}\|\Theta - \Theta^*\|^2$
+- $\nu$ = varianza del rumore stocastico nel gradiente, rilevante per SGD
+
+### ⚙️ Costo Computazionale per Iterazione
+
+| Metodo | Costo per iterazione |
+|--------|-----------------------|
+| **GD** | $O(n\,d)$              |
+| **SGD**| $O(d)$                 |
+
+- **GD**: calcola il gradiente **esatto**, sommando i contributi di tutti i $n$ esempi.
+- **SGD**: usa un **solo** esempio (o minibatch), abbattendo il costo computazionale per iterazione.
+
+### 📈 Numero di Iterazioni per Raggiungere Precisione $\rho$
+
+| Metodo | Iterazioni necessarie |
+|--------|------------------------|
+| **GD** | $O\left(\kappa \log \frac{1}{\rho}\right)$ |
+| **SGD**| $O\left(\frac{\nu \kappa^2}{\rho}\right) + o\left(\frac{1}{\rho}\right)$ |
+
+#### ✳️ Convergenza di GD (Discesa del Gradiente)
+
+Se $\ell$ è fortemente convessa e ha gradiente Lipschitz, allora:
 
 $$
-\bigl|\ell(f_{\Theta}) - \ell(f^*)\bigr| < \rho,
+\ell(f_{\Theta^{(t)}}) - \ell(f^*) \le \left(1 - \frac{1}{\kappa} \right)^t \cdot (\ell(f_{\Theta^{(0)}}) - \ell(f^*)),
+$$
+
+che converge **esponenzialmente** verso $\ell(f^*)$. Invertendo questa relazione, bastano:
+
+$$
+t = O\left(\kappa \log \frac{1}{\rho} \right)
+$$
+
+iterazioni per raggiungere precisione $\rho$.
+
+#### ✳️ Convergenza di SGD
+
+Nel caso stocastico, ogni passo è più "rumoroso", quindi la convergenza è più lenta. Si può dimostrare che:
+
+$$
+\mathbb{E}[\ell(f_{\Theta^{(t)}})] - \ell(f^*) \le O\left( \frac{\nu \kappa^2}{t} \right),
+$$
+
+dove $\nu$ riflette la varianza del gradiente stocastico. Per ottenere precisione $\rho$, servono:
+
+$$
+t = O\left( \frac{\nu \kappa^2}{\rho} \right).
+$$
+
+Quindi la **convergenza è sublineare**: più lenta, ma il costo per iterazione è molto inferiore.
+
+### ✅ Confronto Finale
+
+- **GD**: più costoso per iterazione, ma converge **molto più velocemente** (esponenzialmente in $\rho$).
+- **SGD**: estremamente efficiente per iterazione, ma servono più passi per avvicinarsi all'ottimo.
+
+In pratica, **SGD** è preferito nei grandi dataset (dove $n$ è molto grande), mentre **GD** è ideale per problemi più piccoli o ben condizionati.
+$$
+|\ell(f_\Theta) - \ell(f^*)| < \rho,
 $$
 
 dove:
+- $\ell(f_\Theta)$ è la loss del modello corrente,
+- $\ell(f^*)$ è la loss ottima (raggiunta in teoria dal miglior modello),
+- $\rho$ è l'accuratezza desiderata.
 
-- $\ell(f_{\Theta})$ è il valore della loss ottenuta dal modello parametrizzato $\Theta$,
-- $\ell(f^*)$ è il valore di loss al vero minimizzatore,
-- $\rho > 0$ è la **precisione** desiderata.
+### 📌 Notazione
 
-### Notazione
+- $n$ = numero di esempi nel dataset di training  
+- $d$ = numero di parametri (dimensione di $\Theta$)  
+- $\kappa$ = **numero di condizionamento**, ovvero $\kappa = L/\mu$, dove:
+  - $L$ è la **costante di Lipschitz** del gradiente: $\|\nabla \ell(\Theta_1) - \nabla \ell(\Theta_2)\| \le L \|\Theta_1 - \Theta_2\|$
+  - $\mu$ è la **costante di forte convessità**: $\ell(\Theta) \ge \ell(f^*) + \frac{\mu}{2}\|\Theta - \Theta^*\|^2$
+- $\nu$ = varianza del rumore stocastico nel gradiente, rilevante per SGD
 
-- $n$ = numero di esempi di addestramento
-- $d$ = numero di parametri del modello
-- $\kappa$ = **condizionamento** del problema (rapporto tra costante di Lipschitz del gradiente e costante di forte convessità)
-- $\nu$ = costante legata alla varianza del gradiente nei metodi stocastici
-
-### Complessità per Iterazione
+### ⚙️ Costo Computazionale per Iterazione
 
 | Metodo | Costo per iterazione |
-|:-------|:---------------------:|
-| **GD** | $O(n\,d)$           |
-| **SGD**| $O(d)$              |
+|--------|-----------------------|
+| **GD** | $O(n\,d)$              |
+| **SGD**| $O(d)$                 |
 
-- **GD** richiede di calcolare il gradiente su **tutti** i $n$ esempi (costo $O(n\,d)$).
-- **SGD** usa un solo esempio per aggiornamento (costo $O(d)$), indipendente da $n$.
+- **GD**: calcola il gradiente **esatto**, sommando i contributi di tutti i $n$ esempi.
+- **SGD**: usa un **solo** esempio (o minibatch), abbattendo il costo computazionale per iterazione.
 
-### Numero di Iterazioni per Raggiungere $\rho$
+### 📈 Numero di Iterazioni per Raggiungere Precisione $\rho$
 
 | Metodo | Iterazioni necessarie |
-|:-------|:----------------------:|
-| **GD** | $O\bigl(\kappa \,\log\frac{1}{\rho}\bigr)$ |
-| **SGD**| $O\!\bigl(\tfrac{\nu\,\kappa^2}{\rho}\bigr)\;+\;o\!\bigl(\tfrac{1}{\rho}\bigr)$ |
+|--------|------------------------|
+| **GD** | $O\left(\kappa \log \frac{1}{\rho}\right)$ |
+| **SGD**| $O\left(\frac{\nu \kappa^2}{\rho}\right) + o\left(\frac{1}{\rho}\right)$ |
 
-- **GD** converge **esponenzialmente** in $\rho$: bastano $O(\kappa\log\frac1\rho)$ iterazioni.
-- **SGD** converge più lentamente in termini di $\rho$ (ordine $1/\rho$), ma ogni passo è molto economico.
+#### ✳️ Convergenza di GD (Discesa del Gradiente)
 
-### Confronto Complessivo
+Se $\ell$ è fortemente convessa e ha gradiente Lipschitz, allora:
 
-| Metodo | Complessità totale fino a $\rho$  |
-|--------|------------------------------------:|
-| **GD** | $O\bigl(n\,d \times \kappa\log\frac1\rho\bigr)$ |
-| **SGD**| $O\bigl(d \times \frac{\nu\,\kappa^2}{\rho}\bigr)$ (dominante) |
+$$
+\ell(f_{\Theta^{(t)}}) - \ell(f^*) \le \left(1 - \frac{1}{\kappa} \right)^t \cdot (\ell(f_{\Theta^{(0)}}) - \ell(f^*)),
+$$
 
-- **GD**: costo totale cresce linearmente con $n$ ma logaritmicamente con la precisione $\rho$.
-- **SGD**: costo totale **non dipende** da $n$, favorendo buone capacità di generalizzazione su dataset molto grandi, ma cresce come $1/\rho$.
+che converge **esponenzialmente** verso $\ell(f^*)$. Invertendo questa relazione, bastano:
 
-> **Conclusione:**  
-> - Se $n$ è piccolo e serve alta precisione, **GD** può essere vantaggioso.  
-> - Per **dataset enormi** o scenari online, dove $n$ è grande o infinito, **SGD** è preferibile grazie al costo per iterazione indipendente da $n$ e migliori proprietà di generalizzazione.  
+$$
+t = O\left(\kappa \log \frac{1}{\rho} \right)
+$$
+
+iterazioni per raggiungere precisione $\rho$.
+
+#### ✳️ Convergenza di SGD
+
+Nel caso stocastico, ogni passo è più "rumoroso", quindi la convergenza è più lenta. Si può dimostrare che:
+
+$$
+\mathbb{E}[\ell(f_{\Theta^{(t)}})] - \ell(f^*) \le O\left( \frac{\nu \kappa^2}{t} \right),
+$$
+
+dove $\nu$ riflette la varianza del gradiente stocastico. Per ottenere precisione $\rho$, servono:
+
+$$
+t = O\left( \frac{\nu \kappa^2}{\rho} \right).
+$$
+
+Quindi la **convergenza è sublineare**: più lenta, ma il costo per iterazione è molto inferiore.
+
+### ✅ Confronto Finale
+
+- **GD**: più costoso per iterazione, ma converge **molto più velocemente** (esponenzialmente in $\rho$).
+- **SGD**: estremamente efficiente per iterazione, ma servono più passi per avvicinarsi all'ottimo.
+
+In pratica, **SGD** è preferito nei grandi dataset (dove $n$ è molto grande), mentre **GD** è ideale per problemi più piccoli o ben condizionati.
+
+
+## Conclusioni
+
+La discesa del gradiente si conferma come uno degli algoritmi fondamentali nell'ottimizzazione di modelli matematici e machine learning. Attraverso un'analisi multidimensionale, emergono chiaramente diversi aspetti cruciali:
+
+1. **Natura Iterativa e Sfide**:
+
+   - La dipendenza dalle condizioni iniziali e la presenza di minimi locali in funzioni non convesse sottolineano l'importanza di strategie di inizializzazione robuste.
+   - I punti di sella, sebbene teoricamente problematici, risultano meno critici in pratica grazie all'instabilità numerica e all'alta dimensionalità degli spazi di parametri.
+
+2. **Differenziabilità e Continuità**:
+
+   - La differenziabilità della funzione obiettivo è un requisito essenziale per il calcolo del gradiente, con implicazioni pratiche nella scelta delle funzioni di attivazione e di loss.
+   - Casi patologici come funzioni con derivate parziali discontinue evidenziano la necessità di verifiche analitiche preliminari.
+
+3. **Aspetti Implementativi**:
+
+   - Il *learning rate* si rivela un iperparametro critico, con strategie come il decadimento dinamico e il *line search* che mitigano rischi di divergenza o convergenza lenta.
+   - L'eterogeneità delle curvature del terreno di ottimizzazione motiva l'adozione di tecniche avanzate come il momentum, che accelerano la convergenza smorzando le oscillazioni.
+
+4. **Trade-off Computazionali**:
+
+   - Il confronto tra Batch GD, SGD e Mini-Batch GD delinea un chiaro compromesso tra precisione, costo computazionale e rumore stocastico, con la variante Mini-Batch che rappresenta spesso il miglior bilanciamento per applicazioni su larga scala.
+   - I limiti superiori asintotici rivelano come SGD sia preferibile in scenari *big data* nonostante una convergenza teorica più lenta, grazie alla scalabilità indipendente dalla dimensione del dataset.
+
+5. **Prospettive Moderne**:
+   
+   - Estensioni come Nesterov Momentum e ottimizzatori adattativi (es. Adam) ereditano i principi della discesa del gradiente classica, integrando meccanismi di auto-regolazione per gestire paesaggi di loss complessi.
+
+In sintesi, la discesa del gradiente non è solo un algoritmo ma un *framework concettuale* che unisce rigore matematico e pragmatismo computazionale. La sua efficacia deriva dall'armonia tra teoria dell'ottimizzazione, intuizione geometrica e adattamento alle sfide ingegneristiche, rendendolo uno strumento indispensabile nell'era dei modelli ad alta dimensionalità.
