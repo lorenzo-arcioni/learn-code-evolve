@@ -1,0 +1,811 @@
+<p>La discesa del gradiente (<em>Gradient Descent</em>, GD) è un algoritmo iterativo di minimizzazione del primo ordine. Viene definito <strong>iterativo</strong> poiché esegue una sequenza di aggiornamenti successivi per determinare un minimo locale della funzione obiettivo, a partire da una condizione iniziale.</p>
+<p>Un aspetto cruciale della discesa del gradiente è che, nel caso di funzioni <strong>non convesse</strong>, non possiamo garantire che l&rsquo;algoritmo trovi il minimo globale. Infatti, tali funzioni possono presentare <strong>molteplici minimi locali</strong>, e il punto di convergenza dipenderà dalle condizioni iniziali del modello.</p>
+<p>È possibile che invece di un minimo locale (o globale), l&rsquo;algoritmo si interrompa su un punto di sella. Durante la discesa del gradiente, l’algoritmo cerca punti dove il valore della funzione diminuisce. Se si avvicina a un punto di sella, il gradiente (cioè l&rsquo;indicazione della direzione in cui scendere) può diventare molto piccolo, e questo può <strong>rallentare o bloccare</strong> temporaneamente l’ottimizzazione. Anche se i punti di sella esistono, è <strong>molto improbabile</strong> che la discesa del gradiente si fermi esattamente su uno di essi, per due motivi principali:</p>
+<ol>
+<li>
+<p><strong>Instabilità numerica</strong>: i punti di sella sono instabili — basta una piccola variazione (come un errore di arrotondamento o un passo leggermente diverso) per spingere l’algoritmo lontano dal punto di sella.</p>
+</li>
+<li>
+<p><strong>Alta dimensionalità</strong>: negli spazi ad alta dimensione, i punti di sella sono molto più frequenti dei minimi, ma anche molto più &ldquo;facili da evitare&rdquo;. È molto raro &ldquo;cadere&rdquo; perfettamente in un punto di sella, e ancor più raro restarci a lungo.</p>
+</li>
+</ol>
+<p>In pratica, anche se ci si può avvicinare a un punto di sella, la discesa del gradiente tende naturalmente a superarlo e continuare verso un minimo.</p>
+<p>L&rsquo;intuizione alla base della discesa del gradiente è piuttosto semplice:</p>
+<ol>
+<li>Si parte da un punto iniziale nello spazio dei parametri.  </li>
+<li>Si calcola il gradiente della funzione obiettivo in quel punto, il quale indica la direzione di massima crescita.  </li>
+<li>Per minimizzare la funzione, ci si sposta nella direzione opposta a quella del gradiente, effettuando un &ldquo;passo&rdquo; in quella direzione.  </li>
+<li>Questo processo viene ripetuto fino al raggiungimento di un criterio di arresto (convergenza).</li>
+</ol>
+<p><img src="../../../images/gradient-descent.jpg" alt="Gradient Descent"></p>
+<p><em>Figura 1.0: Discesa del Gradiente su una funzione loss non convessa</em></p>
+<p>Formalmente, il processo di aggiornamento iterativo può essere espresso come:</p>
+<p>@@MATH_BLOCK_0@@</p>
+<p>dove:</p>
+<ul>
+<li>@@MATH_INLINE_32@@ rappresenta i parametri del modello all&rsquo;iterazione @@MATH_INLINE_33@@,</li>
+<li>@@MATH_INLINE_34@@ è il <strong>tasso di apprendimento</strong> (<em>learning rate</em>), un iperparametro che determina l&rsquo;ampiezza del passo nella direzione del gradiente,</li>
+<li>@@MATH_INLINE_35@@ è il gradiente della funzione di perdita @@MATH_INLINE_36@@ rispetto ai parametri @@MATH_INLINE_37@@.</li>
+</ul>
+<p>Ovviamente, per poter calcolare correttamente il gradiente di una funzione, e quindi eseguire correttamente la discesa del gradiente, abbiamo bisogno che la funzione @@MATH_INLINE_38@@ sia differenziabile in ogni suo punto.</p>
+<p>Infatti, non basta che sia definita la derivata parziale di @@MATH_INLINE_39@@ rispetto a ogni singola variabile @@MATH_INLINE_40@@, ma è necessario che @@MATH_INLINE_41@@ abbia un gradiente continuo.</p>
+<h2 id="differenziabilita">Differenziabilità</h2>
+<p>Come abbiamo visto, il gradiente è l’elemento chiave nel funzionamento della discesa del gradiente. Ma ci si potrebbe chiedere: <strong>tutte le funzioni di perdita permettono il calcolo del gradiente?</strong></p>
+<p>La risposta è: <strong>non sempre</strong>.</p>
+<p>Non tutte le funzioni sono <strong>differenziabili</strong>, cioè non tutte ammettono un gradiente ben definito in ogni punto del dominio. Questo è un problema rilevante, perché <strong>la discesa del gradiente richiede che la funzione sia differenziabile</strong>, altrimenti il gradiente potrebbe non esistere in certi punti e l’algoritmo potrebbe bloccarsi o dare risultati errati.</p>
+<h3 id="derivate-parziali-definite-math_inline_42-differenziabilita">Derivate parziali definite @@MATH_INLINE_42@@ Differenziabilità</h3>
+<p>In una funzione di più variabili, avere <strong>tutte le derivate parziali definite</strong> non è sufficiente per garantire la differenziabilità. Infatti, può succedere che tutte le derivate esistano, ma non siano continue — e questo è un segnale che la funzione <strong>non è veramente differenziabile</strong>.</p>
+<p>Un esempio classico è la seguente funzione:</p>
+<ul>
+<li>@@MATH_INLINE_43@@ se @@MATH_INLINE_44@@</li>
+<li>@@MATH_INLINE_45@@ altrimenti</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.mplot3d</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes3D</span>
+
+<span class="c1"># Funzione definita a tratti</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">):</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">x</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">z</span>
+
+<span class="c1"># Griglia</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">Z</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+
+<span class="c1"># Figura Matplotlib</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>  <span class="c1"># circa 1920x1080</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+
+<span class="c1"># Superficie</span>
+<span class="n">surf</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot_surface</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+
+<span class="c1"># Punto non differenziabile all&#39;origine</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s1">&#39;(0, 0)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+
+<span class="c1"># Etichette</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Funzione non differenziabile in (0, 0)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="s1">&#39;f(x, y)&#39;</span><span class="p">)</span>
+
+<span class="c1"># Vista iniziale</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="n">elev</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">azim</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+
+<span class="c1"># Salvataggio in HD</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;gradient-non-differentiable.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+
+<p><img src="../../../images/gradient-non-differentiable.png" alt="Gradient Descent 3" width="1000" style="display: block; margin: 0 auto;"></p>
+<p><em>Figura 1.3: Funzione non differenziabile</em></p>
+<p>Questa funzione ha derivate parziali definite ovunque, ma sono <strong>discontinue nell’origine</strong>, e questo significa che @@MATH_INLINE_46@@ <strong>non è differenziabile</strong> in @@MATH_INLINE_47@@.</p>
+<h4 id="1-derivate-parziali-in-math_inline_48">1. Derivate parziali in @@MATH_INLINE_48@@</h4>
+<p>Per definizione,<br />
+@@MATH_BLOCK_1@@</p>
+<h4 id="2-espressioni-di-math_inline_49-e-math_inline_50-per-math_inline_51">2. Espressioni di @@MATH_INLINE_49@@ e @@MATH_INLINE_50@@ per @@MATH_INLINE_51@@</h4>
+<p>Usando la derivazione di un quoziente:<br />
+@@MATH_BLOCK_2@@<br />
+@@MATH_BLOCK_3@@<br />
+@@MATH_BLOCK_4@@</p>
+<h4 id="3-limiti-lungo-la-retta-math_inline_52">3. Limiti lungo la retta @@MATH_INLINE_52@@</h4>
+<p>Sostituiamo @@MATH_INLINE_53@@ con @@MATH_INLINE_54@@:<br />
+@@MATH_BLOCK_5@@<br />
+@@MATH_BLOCK_6@@<br />
+Questi valori dipendono dal parametro @@MATH_INLINE_55@@. In particolare:<br />
+- Se @@MATH_INLINE_56@@, @@MATH_INLINE_57@@ e @@MATH_INLINE_58@@.<br />
+- Se @@MATH_INLINE_59@@, @@MATH_INLINE_60@@ e @@MATH_INLINE_61@@.</p>
+<h4 id="4-conclusione-sulla-discontinuita">4. Conclusione sulla discontinuità</h4>
+<p>Poiché<br />
+@@MATH_BLOCK_7@@<br />
+assume valori diversi a seconda della retta di avvicinamento (@@MATH_INLINE_62@@ diverso), il gradiente <strong>non è continuo</strong> in @@MATH_INLINE_63@@, pur avendo entrambe le derivate parziali esistenti e finite.</p>
+<h3 id="implicazioni-pratiche">Implicazioni pratiche</h3>
+<p>Fortunatamente, nella pratica si usano spesso funzioni di perdita ben progettate, che sono <strong>lisce e differenziabili</strong> quasi ovunque. Tuttavia, <strong>non è raro incontrare funzioni di perdita non differenziabili</strong>, ad esempio con funzioni <em>piecewise</em> o attivazioni come la <em>ReLU</em>.</p>
+<p>In questi casi, si adottano diverse strategie per rendere il problema trattabile:</p>
+<ul>
+<li><strong>Modifica o sostituzione della funzione</strong> con una variante liscia (es. ReLU → Softplus)</li>
+<li><strong>Tecniche come il &ldquo;reparametrization trick&rdquo;</strong> nei modelli generativi come le VAE, che permettono il passaggio del gradiente anche quando la funzione non è differenziabile nel senso classico</li>
+</ul>
+<p>In conclusione, <strong>la differenziabilità è un requisito fondamentale per l’applicazione diretta della discesa del gradiente</strong>, ma esistono metodi e tecniche per aggirare o gestire in modo efficace i casi in cui essa venga meno.</p>
+<h2 id="interpretazione-geometrica">Interpretazione Geometrica</h2>
+<p>Dal punto di vista geometrico, la discesa del gradiente segue una traiettoria nello spazio dei parametri, cercando il punto in cui la funzione di perdita assume un valore minimo. Se la funzione è convessa, l&rsquo;algoritmo convergerà al minimo globale; altrimenti, si fermerà in un minimo locale. </p>
+<p>È importante notare che, a causa della precisione finita delle macchine, difficilmente si raggiungerà un punto esattamente stazionario, ma ci si fermerà quando la variazione della funzione di perdita diventa trascurabile.</p>
+<p>Volendo possiamo anche, tramite l&rsquo;unrolling ricorsivo, riscrivere esplicitamente @@MATH_INLINE_64@@ come:</p>
+<p>@@MATH_BLOCK_8@@</p>
+<p>Il criterio di arresto più comune è la verifica della norma del gradiente:</p>
+<p>@@MATH_BLOCK_9@@</p>
+<p>dove @@MATH_INLINE_65@@ è una soglia positiva molto piccola che determina il livello di precisione desiderato.</p>
+<p>Ma ce ne sono anche altri come:</p>
+<ul>
+<li><strong>Nessuna modifica dei parametri</strong>: se @@MATH_INLINE_66@@, il criterio di arresto viene raggiunto.</li>
+<li><strong>Loss non migliorata</strong>: se @@MATH_INLINE_67@@, il criterio di arresto viene raggiunto.</li>
+</ul>
+<h2 id="proprieta-del-gradiente">Proprietà del Gradiente</h2>
+<h3 id="ortogonalita-e-massima-crescita">Ortogonalità e Massima Crescita</h3>
+<p>Non abbiamo ancora fornito una giustificazione formale dell&rsquo;affermazione secondo cui il gradiente di una funzione in un dato punto rappresenta la direzione di massima crescita della funzione stessa.</p>
+<p>Per comprendere meglio questo concetto, introduciamo la <strong>derivata direzionale</strong>, una generalizzazione della derivata tradizionale nel dominio unidimensionale @@MATH_INLINE_68@@. Mentre nella retta reale esiste un&rsquo;unica direzione lungo cui calcolare la derivata, in @@MATH_INLINE_69@@ (per @@MATH_INLINE_70@@) non esiste una direzione privilegiata per valutare la variazione di una funzione.</p>
+<p>La derivata direzionale di una funzione differenziabile @@MATH_INLINE_71@@ lungo una direzione unitaria @@MATH_INLINE_72@@ è definita come:</p>
+<p>@@MATH_BLOCK_10@@</p>
+<p>Questa definizione generalizza la derivata parziale @@MATH_INLINE_73@@, che assume che la direzione considerata sia allineata con uno degli assi canonici (ovvero, solo una variabile cambia alla volta mentre le altre restano fisse). Al contrario, la derivata direzionale consente una variazione simultanea di tutte le variabili lungo una direzione arbitraria @@MATH_INLINE_74@@.</p>
+<h3 id="relazione-tra-curve-di-livello-derivata-direzionale-e-gradiente">Relazione tra Curve di Livello, Derivata Direzionale e Gradiente</h3>
+<p>Le <strong>curve di livello</strong> di una funzione sono le curve (o ipersuperfici) lungo le quali la funzione assume lo stesso valore. Ciò implica che la derivata direzionale della funzione in un punto appartenente alla curva, lungo una direzione tangente alla curva stessa, sia nulla, poiché la funzione non varia localmente in quella direzione.</p>
+<p>Formalmente, se @@MATH_INLINE_75@@ è un vettore tangente alla curva di livello di @@MATH_INLINE_76@@, allora</p>
+<p>@@MATH_BLOCK_11@@</p>
+<p>Questo risultato implica che il <strong>gradiente è ortogonale alla curva di livello</strong> e punta nella direzione di massima crescita della funzione. Inoltre, si può dimostrare che esso è orientato verso curve di livello con valori maggiori della funzione (ovvero, verso l&rsquo;incremento della funzione stessa).</p>
+<p>Questo concetto è riassunto nella seguente rappresentazione grafica:</p>
+<ul>
+<li>Le curve di livello rappresentano i punti di uguale valore della funzione.</li>
+<li>Il gradiente è sempre perpendicolare a tali curve.</li>
+<li>La discesa del gradiente segue la direzione opposta al gradiente stesso per minimizzare la funzione.</li>
+</ul>
+<p>```python<br />
+import numpy as np<br />
+import matplotlib.pyplot as plt<br />
+from mpl_toolkits.mplot3d import Axes3D  # Necessario per i plot 3D</p>
+<h1 id="definizione-della-funzione-fx-y">Definizione della funzione f(x, y)</h1>
+<p>def f(x, y):<br />
+    &ldquo;&rdquo;&ldquo;<br />
+    Esempio di funzione con più minimi locali.<br />
+    Puoi modificarla come preferisci.<br />
+    &ldquo;&rdquo;&ldquo;<br />
+    return 0.2 * (x<strong>2 + y</strong>2) + 2.0 * np.sin(x) * np.sin(y)</p>
+<h1 id="definizione-del-gradiente-di-fx-y">Definizione del gradiente di f(x, y)</h1>
+<p>def grad_f(x, y):<br />
+    &ldquo;&rdquo;&ldquo;<br />
+    Calcola il gradiente di f(x, y): restituisce (df/dx, df/dy).<br />
+    &ldquo;&rdquo;&ldquo;<br />
+    dfdx = 0.4 * x + 2.0 * np.cos(x) * np.sin(y)<br />
+    dfdy = 0.4 * y + 2.0 * np.sin(x) * np.cos(y)<br />
+    return dfdx, dfdy</p>
+<h1 id="creazione-della-griglia-di-punti-per-i-plot">Creazione della griglia di punti per i plot</h1>
+<p>N = 200  # Numero di punti per dimensione<br />
+x_vals = np.linspace(-3, 3, N)<br />
+y_vals = np.linspace(-3, 3, N)<br />
+X, Y = np.meshgrid(x_vals, y_vals)<br />
+Z = f(X, Y)</p>
+<h1 id="calcolo-del-gradiente-su-una-griglia-piu-rada-per-la-visualizzazione-del-campo-vettoriale">Calcolo del gradiente su una griglia più rada per la visualizzazione del campo vettoriale</h1>
+<p>step = 15  # Passo per la selezione dei punti per il campo vettoriale<br />
+x_quiver = X[::step, ::step]<br />
+y_quiver = Y[::step, ::step]<br />
+dfdx, dfdy = grad_f(x_quiver, y_quiver)</p>
+<h1 id="creazione-della-figura-con-2-righe-e-2-colonne-usando-width_ratios-per-modificare-le-dimensioni-dei-subplot-in-alto">Creazione della figura con 2 righe e 2 colonne, usando width_ratios per modificare le dimensioni dei subplot in alto</h1>
+<p>fig = plt.figure(figsize=(16, 10))<br />
+gs = fig.add_gridspec(2, 2, width_ratios=[3, 2])</p>
+<h1 id="-">-------------------------------------------------------------------------</h1>
+<h1 id="pannello-1-in-alto-a-sinistra-plot-3d-della-superficie-piu-grande">Pannello 1 (in alto a sinistra): Plot 3D della superficie (più grande)</h1>
+<h1 id="-_1">-------------------------------------------------------------------------</h1>
+<p>ax1 = fig.add_subplot(gs[0, 0], projection=&lsquo;3d&rsquo;)<br />
+surf = ax1.plot_surface(X, Y, Z, cmap=&rsquo;viridis&rsquo;, edgecolor=&rsquo;none&rsquo;, alpha=0.9)<br />
+ax1.set_title(&lsquo;Superficie 3D&rsquo;)<br />
+ax1.set_xlabel(&lsquo;x&rsquo;)<br />
+ax1.set_ylabel(&lsquo;y&rsquo;)<br />
+ax1.set_zlabel(&lsquo;f(x, y)&rsquo;)</p>
+<h1 id="-_2">-------------------------------------------------------------------------</h1>
+<h1 id="pannello-2-in-alto-a-destra-mappa-di-colore-e-curve-di-livello-piu-quadrato">Pannello 2 (in alto a destra): Mappa di colore e curve di livello (più quadrato)</h1>
+<h1 id="-_3">-------------------------------------------------------------------------</h1>
+<p>ax2 = fig.add_subplot(gs[0, 1])<br />
+cont = ax2.contourf(X, Y, Z, levels=30, cmap=&rsquo;viridis&rsquo;)<br />
+ax2.contour(X, Y, Z, levels=10, colors=&rsquo;black&rsquo;, linewidths=0.5)<br />
+ax2.set_title(&lsquo;Mappa di colore e curve di livello&rsquo;)<br />
+ax2.set_xlabel(&lsquo;x&rsquo;)<br />
+ax2.set_ylabel(&lsquo;y&rsquo;)<br />
+ax2.set_aspect(&lsquo;equal&rsquo;, adjustable=&rsquo;box&rsquo;)  # Forza un aspetto quadrato<br />
+cbar = plt.colorbar(cont, ax=ax2)<br />
+cbar.set_label(&lsquo;Valore di f(x, y)&rsquo;)</p>
+<h1 id="-_4">-------------------------------------------------------------------------</h1>
+<h1 id="pannello-3-in-basso-a-sinistra-campo-vettoriale-del-gradiente-positivo">Pannello 3 (in basso a sinistra): Campo vettoriale del gradiente positivo</h1>
+<h1 id="-_5">-------------------------------------------------------------------------</h1>
+<p>ax3 = fig.add_subplot(gs[1, 0])<br />
+ax3.contourf(X, Y, Z, levels=30, cmap=&rsquo;viridis&rsquo;, alpha=0.7)<br />
+ax3.contour(X, Y, Z, levels=10, colors=&rsquo;black&rsquo;, linewidths=0.5, alpha=0.5)<br />
+Q = ax3.quiver(x_quiver, y_quiver, dfdx, dfdy, color=&rsquo;red&rsquo;, scale=50)<br />
+ax3.set_title(&lsquo;Campo vettoriale del gradiente&rsquo;)<br />
+ax3.set_xlabel(&lsquo;x&rsquo;)<br />
+ax3.set_ylabel(&lsquo;y&rsquo;)<br />
+ax3.set_aspect(&lsquo;equal&rsquo;)</p>
+<h1 id="-_6">-------------------------------------------------------------------------</h1>
+<h1 id="pannello-4-in-basso-a-destra-campo-vettoriale-del-gradiente-negativo">Pannello 4 (in basso a destra): Campo vettoriale del gradiente negativo</h1>
+<h1 id="-_7">-------------------------------------------------------------------------</h1>
+<p>ax4 = fig.add_subplot(gs[1, 1])<br />
+ax4.contourf(X, Y, Z, levels=30, cmap=&rsquo;viridis&rsquo;, alpha=0.7)<br />
+ax4.contour(X, Y, Z, levels=10, colors=&rsquo;black&rsquo;, linewidths=0.5, alpha=0.5)<br />
+Q2 = ax4.quiver(x_quiver, y_quiver, -dfdx, -dfdy, color=&rsquo;red&rsquo;, scale=50)<br />
+ax4.set_title(&lsquo;Campo vettoriale del gradiente negativo&rsquo;)<br />
+ax4.set_xlabel(&lsquo;x&rsquo;)<br />
+ax4.set_ylabel(&lsquo;y&rsquo;)<br />
+ax4.set_aspect(&lsquo;equal&rsquo;)</p>
+<p>plt.tight_layout()<br />
+plt.savefig(&lsquo;./images/gradient.jpg&rsquo;, <br />
+           dpi=300, <br />
+           bbox_inches=&rsquo;tight&rsquo;,<br />
+           pad_inches=0.05,  # Aggiungere questo parametro<br />
+           #facecolor=fig.get_facecolor(),  # Mantenere il colore di sfondo<br />
+           transparent=False)  # Disabilitare la trasparenza<br />
+plt.show()</p>
+<!-- PYTHON_BLOCK -->
+<p>```</p>
+<p><img src="../../../images/gradient.jpg" alt="Gradient Descent"></p>
+<p><em>Figura 1.1: Visualizzazione della funzione @@MATH_INLINE_77@@ con la sua superficie 3D, mappa di livello e campi vettoriali del gradiente positivo e negativo, evidenziando le direzioni di massima variazione.</em></p>
+<p>Questa proprietà è fondamentale nelle tecniche di ottimizzazione basate sul gradiente, in quanto garantisce che muovendosi nella direzione opposta al gradiente si riduce il valore della funzione obiettivo.</p>
+<p>```python<br />
+import numpy as np<br />
+import matplotlib.pyplot as plt</p>
+<h1 id="definizione-della-funzione-e-del-suo-gradiente">Definizione della funzione e del suo gradiente</h1>
+<p>def f(x, y):<br />
+    return 0.5 * x<strong>2 + y</strong>2</p>
+<p>def grad_f(x, y):<br />
+    return x, 2 * y</p>
+<h1 id="creazione-della-griglia-di-punti">Creazione della griglia di punti</h1>
+<p>N = 200<br />
+x_vals = np.linspace(-2, 2, N)<br />
+y_vals = np.linspace(-2, 2, N)<br />
+X, Y = np.meshgrid(x_vals, y_vals)<br />
+Z = f(X, Y)</p>
+<h1 id="punto-di-interesse-p0">Punto di interesse P0</h1>
+<p>P0 = (1, 1)<br />
+gx, gy = grad_f(P0[0], P0[1])  # gradiente in P0</p>
+<h1 id="calcolo-della-direzione-tangente-v-a-partire-dalla-condizione-0">Calcolo della direzione tangente (v) a partire dalla condizione: <grad, v> = 0</h1>
+<h1 id="scegliamo-v-2-1-che-e-ortogonale-a-12-poiche-12-2-1-0">Scegliamo v = (2, -1) che è ortogonale a (1,2) (poichè 1<em>2 + 2</em>(-1) = 0)</h1>
+<p>v = np.array([2, -1], dtype=float)<br />
+v = v / np.linalg.norm(v)  # normalizzo</p>
+<h1 id="calcolo-del-vettore-gradiente-in-p0-direzione-di-discesa">Calcolo del vettore -gradiente in P0 (direzione di discesa)</h1>
+<p>neg_grad = -np.array([gx, gy])<br />
+if np.linalg.norm(neg_grad) &gt; 1e-10:<br />
+    neg_grad_unit = neg_grad / np.linalg.norm(neg_grad)<br />
+else:<br />
+    neg_grad_unit = neg_grad</p>
+<h1 id="lunghezze-per-le-frecce">Lunghezze per le frecce</h1>
+<p>arrow_len = 0.5</p>
+<h1 id="creazione-della-figura-con-3-pannelli-affiancati">Creazione della figura con 3 pannelli affiancati</h1>
+<p>fig, axes = plt.subplots(1, 3, figsize=(16, 5))</p>
+<h1 id="-_8">---------------------------</h1>
+<h1 id="pannello-1-curva-di-livello-vettore-tangente-dfdv-0">Pannello 1: Curva di livello + vettore tangente (df/dv = 0)</h1>
+<h1 id="-_9">---------------------------</h1>
+<p>ax1 = axes[0]<br />
+cont1 = ax1.contour(X, Y, Z, levels=15, cmap=&rsquo;viridis&rsquo;)<br />
+ax1.plot(P0[0], P0[1], &lsquo;ko&rsquo;, label=r&rsquo;@@MATH_INLINE_78@@&rsquo;)</p>
+<h1 id="calcolo-del-punto-finale-per-la-freccia-tangente">Calcolo del punto finale per la freccia tangente</h1>
+<p>P1 = (P0[0] + arrow_len * v[0], P0[1] + arrow_len * v[1])<br />
+ax1.annotate(&lsquo;&rsquo;, xy=P1, xytext=P0, <br />
+             arrowprops=dict(arrowstyle=&rsquo;-&gt;&rsquo;, color=&rsquo;blue&rsquo;, lw=2))<br />
+ax1.set_title(r&rsquo;Vettore tangente: @@MATH_INLINE_79@@&rsquo;)<br />
+ax1.set_xlabel(&lsquo;x&rsquo;)<br />
+ax1.set_ylabel(&lsquo;y&rsquo;)<br />
+ax1.set_aspect(&lsquo;equal&rsquo;)</p>
+<h1 id="-_10">---------------------------</h1>
+<h1 id="pannello-2-curva-di-livello-vettore-gradiente">Pannello 2: Curva di livello + vettore -gradiente</h1>
+<h1 id="-_11">---------------------------</h1>
+<p>ax2 = axes[1]<br />
+cont2 = ax2.contour(X, Y, Z, levels=15, cmap=&rsquo;viridis&rsquo;)<br />
+ax2.plot(P0[0], P0[1], &lsquo;ko&rsquo;, label=r&rsquo;@@MATH_INLINE_80@@&rsquo;)</p>
+<h1 id="punto-finale-per-la-freccia-gradiente">Punto finale per la freccia -gradiente</h1>
+<p>P2 = (P0[0] + arrow_len * neg_grad_unit[0], P0[1] + arrow_len * neg_grad_unit[1])<br />
+ax2.annotate(&lsquo;&rsquo;, xy=P2, xytext=P0,<br />
+             arrowprops=dict(arrowstyle=&rsquo;-&gt;&rsquo;, color=&rsquo;red&rsquo;, lw=2))<br />
+ax2.set_title(r&rsquo;Vettore -@@MATH_INLINE_81@@ in @@MATH_INLINE_82@@&rsquo;)<br />
+ax2.set_xlabel(&lsquo;x&rsquo;)<br />
+ax2.set_ylabel(&lsquo;y&rsquo;)<br />
+ax2.set_aspect(&lsquo;equal&rsquo;)</p>
+<h1 id="-_12">---------------------------</h1>
+<h1 id="pannello-3-campo-vettoriale-dellintero-gradiente">Pannello 3: Campo vettoriale dell&rsquo;intero gradiente</h1>
+<h1 id="-_13">---------------------------</h1>
+<p>ax3 = axes[2]<br />
+cont3 = ax3.contourf(X, Y, Z, levels=15, cmap=&rsquo;viridis&rsquo;, alpha=0.7)<br />
+ax3.contour(X, Y, Z, levels=15, colors=&rsquo;black&rsquo;, linewidths=0.5, alpha=0.5)</p>
+<h1 id="campo-vettoriale-quiver-per-il-gradiente">Campo vettoriale (quiver) per il gradiente</h1>
+<p>step = 10<br />
+xq = X[::step, ::step]<br />
+yq = Y[::step, ::step]<br />
+gxq, gyq = grad_f(xq, yq)<br />
+ax3.quiver(xq, yq, gxq, gyq, color=&rsquo;red&rsquo;, scale=30)<br />
+ax3.set_title(r&rsquo;Campo vettoriale: @@MATH_INLINE_83@@&rsquo;)<br />
+ax3.set_xlabel(&lsquo;x&rsquo;)<br />
+ax3.set_ylabel(&lsquo;y&rsquo;)<br />
+ax3.set_aspect(&lsquo;equal&rsquo;)</p>
+<p>plt.tight_layout()<br />
+plt.savefig(&lsquo;./images/gradient.jpg&rsquo;, <br />
+           dpi=300, <br />
+           bbox_inches=&rsquo;tight&rsquo;,<br />
+           pad_inches=0.05,  # Aggiungere questo parametro<br />
+           #facecolor=fig.get_facecolor(),  # Mantenere il colore di sfondo<br />
+           transparent=False)  # Disabilitare la trasparenza<br />
+plt.show()</p>
+<!-- PYTHON_BLOCK -->
+<p>```</p>
+<p><img src="../../../images/gradient-orthogonal.jpg" alt="Gradient Descent 2"></p>
+<p><em>Figura 1.2: Ortogonalità tra il vettore tangente alla curva di livello e il vettore -gradiente</em></p>
+<h2 id="learning-rate">Learning Rate</h2>
+<p>Nella legge di aggiornamento della discesa del gradiente:</p>
+<p>@@MATH_BLOCK_12@@</p>
+<p>il parametro @@MATH_INLINE_84@@ gioca un ruolo fondamentale. Questo parametro si chiama <strong>learning rate</strong> (tasso di apprendimento) ed è un <strong>iperparametro</strong>, cioè non viene appreso durante l’ottimizzazione, ma deve essere scelto manualmente (o tramite ricerca automatica).</p>
+<p>Il learning rate è <strong>sempre positivo</strong>: se fosse negativo, infatti, ci si muoverebbe nella direzione opposta a quella desiderata, <strong>massimizzando</strong> invece che minimizzando la funzione di perdita.</p>
+<h3 id="effetti-del-learning-rate">Effetti del learning rate</h3>
+<p>Il valore di @@MATH_INLINE_85@@ determina <strong>quanto grande è ogni passo</strong> che l’algoritmo compie nella direzione opposta al gradiente. Non coincide esattamente con la lunghezza del passo (che dipende anche dalla norma del gradiente), ma è <strong>proporzionale ad essa</strong>.</p>
+<p>A seconda della sua scelta, il comportamento dell’algoritmo può variare notevolmente:</p>
+<ul>
+<li>Se <strong>@@MATH_INLINE_86@@ è troppo piccolo</strong>, l’algoritmo avanza molto lentamente e richiede molte iterazioni per convergere.</li>
+<li>Se <strong>@@MATH_INLINE_87@@ è troppo grande</strong>, si rischia di <strong>superare il minimo</strong>, causando <strong>oscillazioni</strong> o addirittura <strong>divergenza</strong>.</li>
+<li>Esiste un valore &ldquo;ottimale&rdquo; @@MATH_INLINE_88@@ per ogni punto, che minimizzerebbe la funzione lungo la direzione di discesa. Tuttavia, trovare questo valore è difficile perché richiederebbe una soluzione chiusa del problema, che <strong>non è disponibile in generale</strong> per funzioni non lineari.</li>
+</ul>
+<p>Questa situazione è illustrata nella seguente figura:</p>
+<p>```python<br />
+import numpy as np<br />
+import matplotlib.pyplot as plt</p>
+<h1 id="dati-sintetici">Dati sintetici</h1>
+<p>np.random.seed(42)<br />
+X = np.random.randn(100, 1)<br />
+y = 3 * X.squeeze() + 2 + np.random.randn(100) * 0.5</p>
+<h1 id="funzione-di-perdita">Funzione di perdita</h1>
+<p>def loss(w, b, X, y):<br />
+    y_pred = w * X.squeeze() + b<br />
+    return np.mean((y - y_pred) ** 2)</p>
+<h1 id="gradiente">Gradiente</h1>
+<p>def gradients(w, b, X, y):<br />
+    y_pred = w * X.squeeze() + b<br />
+    error = y_pred - y<br />
+    dw = 2 * np.mean(error * X.squeeze())<br />
+    db = 2 * np.mean(error)<br />
+    return dw, db</p>
+<h1 id="allenamento">Allenamento</h1>
+<p>def train(alpha, steps=30):<br />
+    w, b = 0.0, 0.0<br />
+    trajectory = [(w, b)]<br />
+    for _ in range(steps):<br />
+        dw, db = gradients(w, b, X, y)<br />
+        w -= alpha * dw<br />
+        b -= alpha * db<br />
+        trajectory.append((w, b))<br />
+    return trajectory</p>
+<h1 id="parametri-per-i-plot">Parametri per i plot</h1>
+<p>alphas = [0.01, 0.1, 0.95]<br />
+titles = [&lsquo;Small α&rsquo;, &lsquo;Optimal α&rsquo;, &lsquo;Large α&rsquo;]<br />
+colors = [&lsquo;#1f77b4&rsquo;, &lsquo;#2ca02c&rsquo;, &lsquo;#d62728&rsquo;]<br />
+trajectories = [train(alpha) for alpha in alphas]</p>
+<h1 id="curve-di-livello">Curve di livello</h1>
+<p>w_range = np.linspace(-1, 5, 100)<br />
+b_range = np.linspace(0, 5, 100)<br />
+W, B = np.meshgrid(w_range, b_range)<br />
+Z = np.array([[loss(w, b, X, y) for w in w_range] for b in b_range])</p>
+<h1 id="plot">Plot</h1>
+<p>fig, axs = plt.subplots(1, 3, figsize=(18, 5), sharey=True)<br />
+for ax, traj, title, color in zip(axs, trajectories, titles, colors):<br />
+    contours = ax.contour(W, B, Z, levels=50, cmap=&rsquo;cividis&rsquo;)<br />
+    w_vals, b_vals = zip(<em>traj)<br />
+    ax.plot(w_vals, b_vals, marker=&rsquo;o&rsquo;, color=color, linewidth=2, alpha=0.8, label=title)<br />
+    ax.plot(3, 2, marker=&rsquo;</em>&rsquo;, color=&rsquo;black&rsquo;, markersize=15, label=&rsquo;Minimo&rsquo;)<br />
+    ax.set_title(title, fontsize=14)<br />
+    ax.set_xlabel(&lsquo;w&rsquo;)<br />
+    ax.grid(True, linestyle=&rsquo;&ndash;&lsquo;, alpha=0.5)<br />
+    ax.legend()<br />
+axs[0].set_ylabel(&lsquo;b&rsquo;)<br />
+plt.suptitle(&lsquo;Confronto tra traiettorie di gradient descent con diversi learning rate&rsquo;, fontsize=16)<br />
+plt.tight_layout()<br />
+plt.subplots_adjust(top=0.85)<br />
+plt.show()</p>
+<!-- PYTHON_BLOCK -->
+<p>```</p>
+<p align="center">
+  <img src="../../../images/learning-rate-comparison-sgd.png" alt="Confronto tra diversi learning rate">
+</p>
+
+<p><em>Figura 2.0: Confronto tra learning rate troppo piccolo, troppo grande e ottimale</em></p>
+<h3 id="line-search">Line Search</h3>
+<p>Una strategia per scegliere dinamicamente il valore di @@MATH_INLINE_89@@ è il <strong>line search</strong>: una procedura che, una volta nota la direzione di discesa @@MATH_INLINE_90@@, cerca il valore di @@MATH_INLINE_91@@ che <strong>massimizza la diminuzione</strong> della funzione di perdita lungo quella direzione. In pratica, si risolve un piccolo problema di ottimizzazione interno a ogni passo.</p>
+<p>Questa tecnica è più costosa, ma può migliorare la stabilità e l&rsquo;efficacia dell’ottimizzazione.</p>
+<h3 id="decadimento-del-learning-rate">Decadimento del learning rate</h3>
+<p>In alternativa al line search, è comune utilizzare <strong>strategie di decadimento</strong> del learning rate, cioè farlo <strong>diminuire nel tempo</strong> secondo una certa regola:</p>
+<ul>
+<li><strong>Decadimento lineare</strong>:<br />
+  @@MATH_BLOCK_13@@</li>
+<li><strong>Decadimento razionale</strong>:<br />
+  @@MATH_BLOCK_14@@</li>
+<li><strong>Decadimento esponenziale</strong>:<br />
+  @@MATH_BLOCK_15@@</li>
+</ul>
+<p>dove @@MATH_INLINE_92@@ è un parametro di decadimento.</p>
+<p>L’idea alla base è che all’inizio si vogliono fare <strong>passi ampi</strong> per esplorare rapidamente lo spazio dei parametri, mentre verso la fine servono <strong>passi piccoli</strong> per affinare la soluzione e garantire la convergenza ottimale.</p>
+<h3 id="considerazioni-pratiche">Considerazioni pratiche</h3>
+<p>Non esiste una &ldquo;ricetta perfetta&rdquo; per scegliere il learning rate o la sua strategia di aggiornamento. Molto spesso, la scelta viene fatta tramite:</p>
+<ul>
+<li><strong>esperienza pratica</strong></li>
+<li><strong>grid search o random search</strong></li>
+<li><strong>ottimizzazione bayesiana o altri metodi automatici</strong></li>
+</ul>
+<p>Alcuni algoritmi, come <strong>Adam</strong>, includono meccanismi per <strong>adattare automaticamente il learning rate</strong> per ogni parametro, rendendo l&rsquo;ottimizzazione più robusta e spesso più veloce.</p>
+<h2 id="batch-mini-batch-e-stochastic-gradient-descent">Batch, Mini-Batch e Stochastic Gradient Descent</h2>
+<p>La discesa del gradiente nella sua forma classica (chiamata <strong>Batch Gradient Descent</strong>) utilizza l&rsquo;intero dataset per calcolare il gradiente della funzione di perdita. Questo approccio fornisce una direzione precisa, ma può essere computazionalmente costoso, specialmente su dataset di grandi dimensioni.</p>
+<p>Per ovviare a questo problema, sono state sviluppate varianti più efficienti:</p>
+<h3 id="1-batch-gradient-descent">1. <strong>Batch Gradient Descent</strong></h3>
+<p>In questo approccio, ad ogni iterazione viene utilizzato <strong>l&rsquo;intero dataset</strong> per calcolare il gradiente:</p>
+<p>@@MATH_BLOCK_16@@</p>
+<p>Si calcola quindi il gradiente della funzione di perdita per ogni esempio del dataset, e poi si effettua il passo di discesa con la media dei gradiente. Quindi un epoca in questo caso sonsiste in un solo passo di discesa.</p>
+<ul>
+<li>Vantaggi: direzione precisa della discesa.</li>
+<li>Svantaggi: lento per dataset molto grandi, non aggiornabile in tempo reale.</li>
+</ul>
+<h3 id="2-stochastic-gradient-descent-sgd">2. <strong>Stochastic Gradient Descent (SGD)</strong></h3>
+<p>In questo caso, l&rsquo;aggiornamento dei parametri viene effettuato <strong>per ogni singolo esempio</strong> del dataset:</p>
+<p>@@MATH_BLOCK_17@@</p>
+<p>Quindi un epoca in questo caso consiste in @@MATH_INLINE_93@@ passi di discesa (iterazioni). Questo perché si calcola il gradiente per ogni esempio del dataset, quindi si effettua @@MATH_INLINE_94@@ passi di discesa.</p>
+<ul>
+<li>Vantaggi: aggiornamenti molto rapidi, buona approssimazione della direzione di discesa.</li>
+<li>Svantaggi: il rumore introdotto da ogni esempio può causare oscillazioni e rendere difficile la convergenza stabile.</li>
+</ul>
+<h3 id="3-mini-batch-gradient-descent">3. <strong>Mini-Batch Gradient Descent</strong></h3>
+<p>Rappresenta un compromesso tra le due precedenti. Si utilizza un <strong>sottoinsieme (mini-batch)</strong> di @@MATH_INLINE_95@@ campioni (con @@MATH_INLINE_96@@) per calcolare il gradiente:</p>
+<p>@@MATH_BLOCK_18@@</p>
+<p>Qui calcoliamo ogni volta il gradiente su @@MATH_INLINE_97@@ esempi, quindi un epoca in questo caso consiste in @@MATH_INLINE_98@@ passi di discesa (iterazioni).</p>
+<ul>
+<li>Vantaggi: bilancia precisione e velocità, sfrutta l&rsquo;efficienza computazionale del calcolo vettoriale su GPU.</li>
+<li>È la scelta più comune nelle reti neurali moderne.</li>
+</ul>
+<h4 id="considerazioni-sulluso-dei-mini-batch">Considerazioni sull&rsquo;uso dei Mini-Batch</h4>
+<ul>
+<li>
+<p>Ogni mini-batch può essere elaborato in <strong>parallelo</strong>, caratteristica che si sposa bene con l&rsquo;aumento di disponibilità e potenza delle <strong>architetture parallele</strong> come le <strong>GPGPU</strong> (General Purpose Graphic Processing Unit), sempre più usate nei compiti di deep learning. In questo caso, la dimensione massima del batch è limitata dall’hardware e dalla rappresentazione in memoria dei dati.</p>
+</li>
+<li>
+<p>Mini-batch di <strong>piccole dimensioni</strong> possono avere un <strong>effetto regolarizzante</strong>, introducendo <strong>varianza nella stima del gradiente</strong>. Questo può impedire all’algoritmo di raggiungere il minimo esatto, contribuendo così a <strong>ridurre l’overfitting</strong>. Tuttavia, batch troppo piccoli (nel limite, apprendimento online con un solo dato per volta) introducono <strong>una varianza troppo elevata</strong>, richiedendo l’uso di un <strong>learning rate piccolo</strong> (meglio se <strong>decrescente</strong>) per mantenere la stabilità dell’algoritmo.</p>
+</li>
+</ul>
+<h3 id="confronto-grafico">Confronto Grafico</h3>
+<p>Il seguente esempio Python illustra la differenza tra Batch, Mini-Batch e Stochastic Gradient Descent, evidenziando le traiettorie nel piano dei parametri:</p>
+<p>```python<br />
+import numpy as np<br />
+import matplotlib.pyplot as plt</p>
+<h1 id="dati-sintetici_1">Dati sintetici</h1>
+<p>np.random.seed(42)<br />
+X = np.random.randn(100, 1)<br />
+y = 3 * X.squeeze() + 2 + np.random.randn(100) * 0.5</p>
+<h1 id="funzione-di-perdita_1">Funzione di perdita</h1>
+<p>def loss(w, b, X, y):<br />
+    y_pred = w * X.squeeze() + b<br />
+    return np.mean((y - y_pred) ** 2)</p>
+<h1 id="gradiente_1">Gradiente</h1>
+<p>def gradients(w, b, X, y):<br />
+    y_pred = w * X.squeeze() + b<br />
+    error = y_pred - y<br />
+    dw = 2 * np.mean(error * X.squeeze())<br />
+    db = 2 * np.mean(error)<br />
+    return dw, db</p>
+<h1 id="addestramento-con-step-uniformi">Addestramento con step uniformi</h1>
+<p>def train(method=&rsquo;batch&rsquo;, batch_size=10, steps=30, alpha=0.1):<br />
+    w, b = 0.0, 0.0<br />
+    trajectory = [(w, b)]</p>
+<div class="codehilite"><pre><span></span><code>if method == &#39;batch&#39;:
+    for _ in range(steps):
+        dw, db = gradients(w, b, X, y)
+        w -= alpha * dw
+        b -= alpha * db
+        trajectory.append((w, b))
+
+elif method == &#39;sgd&#39;:
+    indices = np.random.permutation(len(X))
+    for i in range(steps):
+        idx = indices[i % len(X)]
+        dw, db = gradients(w, b, X[idx:idx+1], y[idx:idx+1])
+        w -= alpha * dw
+        b -= alpha * db
+        trajectory.append((w, b))
+
+elif method == &#39;minibatch&#39;:
+    batch_size = max(1, len(X) // steps)
+    for i in range(steps):
+        indices = np.random.choice(len(X), batch_size, replace=False)
+        X_batch = X[indices]
+        y_batch = y[indices]
+        dw, db = gradients(w, b, X_batch, y_batch)
+        w -= alpha * dw
+        b -= alpha * db
+        trajectory.append((w, b))
+
+return trajectory
+</code></pre></div>
+
+<h1 id="tracciamento-traiettorie-30-step">Tracciamento traiettorie (30 step)</h1>
+<p>traj_batch = train(method=&rsquo;batch&rsquo;, steps=30)<br />
+traj_sgd = train(method=&rsquo;sgd&rsquo;, steps=30)<br />
+traj_minibatch = train(method=&rsquo;minibatch&rsquo;, steps=30)</p>
+<h1 id="curve-di-livello_1">Curve di livello</h1>
+<p>w_range = np.linspace(-1, 5, 100)<br />
+b_range = np.linspace(0, 5, 100)<br />
+W, B = np.meshgrid(w_range, b_range)<br />
+Z = np.array([[loss(w, b, X, y) for w in w_range] for b in b_range])</p>
+<h1 id="livelli-coerenti-e-ordinati">Livelli coerenti e ordinati</h1>
+<p>min_loss = np.min(Z)<br />
+lower_limit = min(min_loss, 0.5)<br />
+all_levels = np.linspace(lower_limit, np.max(Z), 50)</p>
+<h1 id="plot_1">Plot</h1>
+<p>plt.figure(figsize=(12, 8))<br />
+contours = plt.contour(W, B, Z, levels=all_levels, cmap=&rsquo;cividis&rsquo;)<br />
+plt.clabel(contours, inline=True, fontsize=8, fmt=&rsquo;%.2f&rsquo;)</p>
+<h1 id="colori-desaturati">Colori desaturati</h1>
+<p>colors = [&lsquo;#3e8250&rsquo;, &lsquo;#567991&rsquo;, &lsquo;#b05541&rsquo;]</p>
+<h1 id="traiettorie">Traiettorie</h1>
+<p>for traj, label, color in zip([traj_batch, traj_sgd, traj_minibatch],<br />
+                              [&lsquo;Batch GD&rsquo;, &lsquo;SGD&rsquo;, &lsquo;Mini-Batch GD&rsquo;],<br />
+                              colors):<br />
+    w_vals, b_vals = zip(*traj)<br />
+    plt.plot(w_vals, b_vals, marker=&rsquo;o&rsquo;, label=label, linewidth=2, alpha=0.7, color=color)</p>
+<h1 id="minimo-globale-approssimato-analiticamente-w3-b2">Minimo globale (approssimato analiticamente: w=3, b=2)</h1>
+<p>plt.plot(3, 2, marker=&rsquo;*&rsquo;, color=&rsquo;black&rsquo;, markersize=15, label=&rsquo;Minimo&rsquo;)</p>
+<h1 id="zoom-centrato-ma-visibile-anche-lorigine">Zoom centrato ma visibile anche l&rsquo;origine</h1>
+<p>plt.xlim(-0.1, 4.0)<br />
+plt.ylim(0.0, 3.5)</p>
+<h1 id="stile">Stile</h1>
+<p>plt.xlabel(&lsquo;w&rsquo;, fontsize=12)<br />
+plt.ylabel(&lsquo;b&rsquo;, fontsize=12)<br />
+plt.title(&lsquo;Curve di livello della funzione di perdita con traiettorie&rsquo;, fontsize=14)<br />
+plt.legend()<br />
+plt.grid(True, linestyle=&rsquo;&ndash;&lsquo;, alpha=0.5)<br />
+plt.tight_layout()<br />
+plt.show()</p>
+<!-- PYTHON_BLOCK -->
+<p>```</p>
+<p><img src="/home/lorenzo/Documenti/GitHub/my-obsidian-vault/images/gradient-methods.png" alt="Gradient Descent Methods"></p>
+<p><em>Figura 1.3: Confronto visivo tra le traiettorie di Batch Gradient Descent, SGD e Mini-Batch Gradient Descent</em></p>
+<h3 id="conclusione">Conclusione</h3>
+<p>Le varianti del Gradient Descent offrono una gamma di compromessi tra accuratezza, velocità e stabilità. In pratica:</p>
+<ul>
+<li><strong>Batch GD</strong> è utile per modelli piccoli e dataset contenuti.</li>
+<li><strong>SGD</strong> è adatto a scenari online o dataset giganteschi.</li>
+<li><strong>Mini-Batch GD</strong> è lo standard nell&rsquo;apprendimento profondo per la sua efficienza.</li>
+</ul>
+<p>Le tecniche moderne includono anche ottimizzatori avanzati (come Adam, RMSProp, Adagrad), che combinano il gradiente con meccanismi adattivi per un miglior controllo della discesa, che tratteremo proprio nella sezione successiva.</p>
+<h2 id="discesa-del-gradiente-con-momentum">Discesa del Gradiente con Momentum</h2>
+<p>Uno dei principali limiti della discesa del gradiente standard è la sua <strong>lentezza di convergenza</strong> in presenza di <strong>vallate strette e profonde</strong> nella funzione di perdita, oppure in direzioni con <strong>curvature molto diverse</strong> (ad esempio funzioni “a sella” o “a banana”). In questi casi, l’algoritmo può oscillare lungo le direzioni di maggiore curvatura, rallentando notevolmente il percorso verso il minimo.</p>
+<p>Per mitigare questo problema, viene introdotto il concetto di <strong>momentum</strong>, ispirato alla fisica newtoniana: invece di aggiornare i parametri unicamente in base al gradiente attuale e al learning rate, si tiene conto anche della <strong>direzione e velocità del movimento passato</strong>, accumulando “inerzia” lungo le direzioni coerenti.</p>
+<h3 id="formula-dellaggiornamento-con-momentum">Formula dell&rsquo;Aggiornamento con Momentum</h3>
+<p>L’algoritmo introduce una variabile ausiliaria @@MATH_INLINE_99@@ che rappresenta la “velocità” del sistema, aggiornata iterativamente secondo:</p>
+<p>@@MATH_BLOCK_19@@</p>
+<p>dove:</p>
+<ul>
+<li>@@MATH_INLINE_100@@ è il <strong>learning rate</strong>,</li>
+<li>@@MATH_INLINE_101@@ è il <strong>coefficiente di momentum</strong>, che controlla il peso del termine di velocità accumulato (valori tipici: @@MATH_INLINE_102@@),</li>
+<li>@@MATH_INLINE_103@@ è il gradiente della funzione di perdita all’iterazione @@MATH_INLINE_104@@,</li>
+<li>@@MATH_INLINE_105@@ è la velocità accumulata al passo precedente. Al tempo @@MATH_INLINE_106@@, @@MATH_INLINE_107@@.</li>
+</ul>
+<h3 id="interpretazione-intuitiva">Interpretazione Intuitiva</h3>
+<ul>
+<li>Quando i gradienti puntano nella <strong>stessa direzione</strong> in iterazioni successive, il termine @@MATH_INLINE_108@@ <strong>rafforza</strong> la velocità in quella direzione, rendendo l’avanzamento più rapido.</li>
+<li>Quando la direzione del gradiente <strong>cambia spesso</strong> (es. oscillazioni), il momentum <strong>smorza le variazioni</strong>, stabilizzando l’andamento e migliorando la convergenza.</li>
+</ul>
+<p>```python<br />
+import numpy as np<br />
+import matplotlib.pyplot as plt</p>
+<h1 id="funzione-di-costo">Funzione di costo</h1>
+<p>def f(x, y):<br />
+    return 0.5 * (x<strong>2 + 10 * y</strong>2)</p>
+<h1 id="gradiente-della-funzione">Gradiente della funzione</h1>
+<p>def grad_f(x, y):<br />
+    return np.array([x, 10 * y])</p>
+<h1 id="gd-semplice">GD semplice</h1>
+<p>def gradient_descent(start, lr, steps):<br />
+    x = np.zeros((steps, 2))<br />
+    x[0] = start<br />
+    for i in range(1, steps):<br />
+        grad = grad_f(*x[i-1])<br />
+        x[i] = x[i-1] - lr * grad<br />
+    return x</p>
+<h1 id="gd-con-momentum">GD con momentum</h1>
+<p>def gradient_descent_momentum(start, lr, steps, gamma):<br />
+    x = np.zeros((steps, 2))<br />
+    v = np.zeros(2)<br />
+    x[0] = start<br />
+    for i in range(1, steps):<br />
+        grad = grad_f(*x[i-1])<br />
+        v = gamma * v + lr * grad<br />
+        x[i] = x[i-1] - v<br />
+    return x</p>
+<h1 id="parametri">Parametri</h1>
+<p>start = np.array([-4.0, 2.0])<br />
+steps = 80<br />
+lr = 0.01<br />
+gamma = 0.75<br />
+optimum = np.array([0.0, 0.0])  # punto di minimo</p>
+<h1 id="percorsi">Percorsi</h1>
+<p>path_gd = gradient_descent(start, lr, steps)<br />
+path_mom = gradient_descent_momentum(start, lr, steps, gamma)</p>
+<h1 id="contorno-della-funzione">Contorno della funzione</h1>
+<p>X, Y = np.meshgrid(np.linspace(-5, 5, 400), np.linspace(-3, 3, 400))<br />
+Z = f(X, Y)<br />
+levels = np.logspace(-0.5, 3, 20)</p>
+<h1 id="setup-figura-allungata">Setup figura allungata</h1>
+<p>fig, axs = plt.subplots(2, 1, figsize=(12, 5), dpi=150)</p>
+<p>for ax, path, title in zip(<br />
+    axs,<br />
+    [path_gd, path_mom],<br />
+    [&lsquo;(a) Without momentum&rsquo;, &lsquo;(b) With momentum&rsquo;]<br />
+):<br />
+    ax.contour(X, Y, Z, levels=levels, cmap=&rsquo;Greens_r&rsquo;, alpha=0.1)<br />
+    ax.plot(path[:, 0], path[:, 1], color=&rsquo;darkorange&rsquo;, marker=&rsquo;o&rsquo;, markersize=2)</p>
+<div class="codehilite"><pre><span></span><code># Starting point e Solution
+ax.annotate(&#39;Starting Point&#39;, xy=path[0], xytext=(-4.8, 2.3), arrowprops=dict(arrowstyle=&#39;-&gt;&#39;))
+ax.annotate(&#39;Solution&#39;, xy=path[-1], xytext=(-2.5, -1.7), arrowprops=dict(arrowstyle=&#39;-&gt;&#39;))
+
+# Ottimo
+ax.plot(*optimum, &#39;o&#39;, color=&#39;steelblue&#39;, markersize=6)
+ax.annotate(&#39;Optimum&#39;, xy=optimum, xytext=(0.5, 0.3), textcoords=&#39;data&#39;, ha=&#39;left&#39;,
+            arrowprops=dict(arrowstyle=&#39;-&gt;&#39;, color=&#39;black&#39;))
+
+ax.set_title(title)
+ax.axis(&#39;off&#39;)
+</code></pre></div>
+
+<p>plt.tight_layout()<br />
+plt.show()</p>
+<!-- PYTHON_BLOCK -->
+<p>```</p>
+<p><img src="../../../images/momentum.png" alt="Momentum Gradient Descent"></p>
+<p><em>Figura 1.3: La discesa del gradiente con momentum permette una traiettoria più fluida e veloce verso il minimo, evitando oscillazioni e rallentamenti dovuti a curvature diverse nelle direzioni principali.</em></p>
+<h3 id="derivazione-della-forma-chiusa-per-gd-con-momentum">Derivazione della forma chiusa per GD con Momentum</h3>
+<p>L’obiettivo è derivare una <strong>forma chiusa</strong> (non ricorsiva) dell’aggiornamento dei parametri al tempo @@MATH_INLINE_109@@, in funzione di tutti i gradienti calcolati fino a quel momento. In questo modo possiamo analizzare in modo più chiaro <strong>l’effetto cumulativo del momentum</strong>, che combina i gradienti passati pesandoli secondo una <strong>decadimento geometrico</strong> controllato dall&rsquo; iperparametro @@MATH_INLINE_110@@. Questo permette di evidenziare come il metodo favorisca le direzioni persistenti nel tempo e smorzi le oscillazioni dovute a cambiamenti locali nel paesaggio della funzione di perdita.</p>
+<p>Partiamo dalle <strong>equazioni ricorsive</strong> della discesa del gradiente con momentum:</p>
+<p>@@MATH_BLOCK_20@@</p>
+<p>Vogliamo <strong>unrollare</strong> queste relazioni fino all’iterazione iniziale @@MATH_INLINE_111@@.</p>
+<h4 id="1-espressione-ricorsiva-di-math_inline_112">1. Espressione ricorsiva di @@MATH_INLINE_112@@</h4>
+<p>Applichiamo più volte la definizione di @@MATH_INLINE_113@@:</p>
+<p>@@MATH_BLOCK_21@@</p>
+<p>e in generale, per @@MATH_INLINE_114@@:</p>
+<p>@@MATH_BLOCK_22@@</p>
+<p>Spesso si assume @@MATH_INLINE_115@@, da cui:</p>
+<p>@@MATH_BLOCK_23@@</p>
+<h4 id="2-unrolling-di-math_inline_116">2. Unrolling di @@MATH_INLINE_116@@</h4>
+<p>Ora inseriamo @@MATH_INLINE_117@@ nell’aggiornamento di @@MATH_INLINE_118@@:</p>
+<p>@@MATH_BLOCK_24@@</p>
+<p>Ripetendo ricorsivamente l’aggiornamento su @@MATH_INLINE_119@@, otteniamo:</p>
+<p>@@MATH_BLOCK_25@@</p>
+<h4 id="3-calcolo-della-somma-geometrica-interna">3. Calcolo della somma geometrica interna</h4>
+<p>La somma interna @@MATH_INLINE_120@@ è una <strong>serie geometrica</strong> di ragione @@MATH_INLINE_121@@ e @@MATH_INLINE_122@@ termini:</p>
+<p>@@MATH_BLOCK_26@@</p>
+<h4 id="4-forma-finale">4. Forma finale</h4>
+<p>Sostituendo nella formula di @@MATH_INLINE_123@@, otteniamo la forma chiusa:</p>
+<p>@@MATH_BLOCK_27@@</p>
+<p>Qui @@MATH_INLINE_124@@ è il <strong>fattore di accumulo</strong> che deriva dalla somma geometrica.</p>
+<p>Questa espansione chiarisce perché il momentum aiuta a <strong>smussare oscillazioni</strong> e a <strong>favorire direzioni stabili</strong>, facilitando la convergenza più rapida verso un minimo.</p>
+<h3 id="confronto-con-gradient-descent-standard">Confronto con Gradient Descent Standard</h3>
+<table>
+<thead>
+<tr>
+<th>Metodo</th>
+<th>Pro</th>
+<th>Contro</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gradient Descent</strong></td>
+<td>Preciso, semplice da implementare</td>
+<td>Lento in presenza di vallate strette</td>
+</tr>
+<tr>
+<td><strong>Momentum Gradient Descent</strong></td>
+<td>Convergenza più rapida e fluida</td>
+<td>Richiede una variabile aggiuntiva (@@MATH_INLINE_125@@) e tuning di @@MATH_INLINE_126@@</td>
+</tr>
+</tbody>
+</table>
+<h3 id="osservazioni-finali">Osservazioni Finali</h3>
+<ul>
+<li>Il termine @@MATH_INLINE_127@@ controlla <strong>quanto &ldquo;lontano&rdquo; nel passato</strong> guardiamo per l’accumulo di velocità. Valori troppo alti (@@MATH_INLINE_128@@) possono causare overshooting, mentre valori bassi rendono il metodo simile al GD standard.</li>
+<li>Il metodo con momentum è la base di molte varianti moderne dell&rsquo;ottimizzazione, tra cui <strong>Nesterov Accelerated Gradient (NAG)</strong> e <strong>Adam</strong>.</li>
+</ul>
+<p>In sintesi, il momentum fornisce un <strong>bilanciamento intelligente tra memoria del passato e reattività al presente</strong>, migliorando l’efficienza di convergenza e la stabilità numerica della discesa del gradiente.</p>
+<h2 id="limiti-superiori-asintotici-convergenza-di-gd-e-sgd">Limiti Superiori Asintotici: Convergenza di GD e SGD</h2>
+<p>Per problemi <strong>convessi</strong> (dove la funzione di loss ha un solo minimo globale), possiamo analizzare quanto velocemente i metodi di discesa del gradiente si avvicinano al minimo ottimo.</p>
+<p>Assumiamo di voler trovare un punto @@MATH_INLINE_129@@ tale che la <strong>loss</strong> ottenuta sia entro una precisione @@MATH_INLINE_130@@ dall</p>
+<p>dove:<br />
+- @@MATH_INLINE_131@@ è la loss del modello corrente,<br />
+- @@MATH_INLINE_132@@ è la loss ottima (raggiunta in teoria dal miglior modello),<br />
+- @@MATH_INLINE_133@@ è l&rsquo;accuratezza desiderata.</p>
+<h3 id="notazione">📌 Notazione</h3>
+<ul>
+<li>@@MATH_INLINE_134@@ = numero di esempi nel dataset di training  </li>
+<li>@@MATH_INLINE_135@@ = numero di parametri (dimensione di @@MATH_INLINE_136@@)  </li>
+<li>@@MATH_INLINE_137@@ = <strong>numero di condizionamento</strong>, ovvero @@MATH_INLINE_138@@, dove:</li>
+<li>@@MATH_INLINE_139@@ è la <strong>costante di Lipschitz</strong> del gradiente: @@MATH_INLINE_140@@</li>
+<li>@@MATH_INLINE_141@@ è la <strong>costante di forte convessità</strong>: @@MATH_INLINE_142@@</li>
+<li>@@MATH_INLINE_143@@ = varianza del rumore stocastico nel gradiente, rilevante per SGD</li>
+</ul>
+<h3 id="costo-computazionale-per-iterazione">⚙️ Costo Computazionale per Iterazione</h3>
+<table>
+<thead>
+<tr>
+<th>Metodo</th>
+<th>Costo per iterazione</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GD</strong></td>
+<td>@@MATH_INLINE_144@@</td>
+</tr>
+<tr>
+<td><strong>SGD</strong></td>
+<td>@@MATH_INLINE_145@@</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>GD</strong>: calcola il gradiente <strong>esatto</strong>, sommando i contributi di tutti i @@MATH_INLINE_146@@ esempi.</li>
+<li><strong>SGD</strong>: usa un <strong>solo</strong> esempio (o minibatch), abbattendo il costo computazionale per iterazione.</li>
+</ul>
+<h3 id="numero-di-iterazioni-per-raggiungere-precisione-math_inline_147">📈 Numero di Iterazioni per Raggiungere Precisione @@MATH_INLINE_147@@</h3>
+<table>
+<thead>
+<tr>
+<th>Metodo</th>
+<th>Iterazioni necessarie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GD</strong></td>
+<td>@@MATH_INLINE_148@@</td>
+</tr>
+<tr>
+<td><strong>SGD</strong></td>
+<td>@@MATH_INLINE_149@@</td>
+</tr>
+</tbody>
+</table>
+<h4 id="convergenza-di-gd-discesa-del-gradiente">✳️ Convergenza di GD (Discesa del Gradiente)</h4>
+<p>Se @@MATH_INLINE_150@@ è fortemente convessa e ha gradiente Lipschitz, allora:</p>
+<p>@@MATH_BLOCK_28@@</p>
+<p>che converge <strong>esponenzialmente</strong> verso @@MATH_INLINE_151@@. Invertendo questa relazione, bastano:</p>
+<p>@@MATH_BLOCK_29@@</p>
+<p>iterazioni per raggiungere precisione @@MATH_INLINE_152@@.</p>
+<h4 id="convergenza-di-sgd">✳️ Convergenza di SGD</h4>
+<p>Nel caso stocastico, ogni passo è più &ldquo;rumoroso&rdquo;, quindi la convergenza è più lenta. Si può dimostrare che:</p>
+<p>@@MATH_BLOCK_30@@</p>
+<p>dove @@MATH_INLINE_153@@ riflette la varianza del gradiente stocastico. Per ottenere precisione @@MATH_INLINE_154@@, servono:</p>
+<p>@@MATH_BLOCK_31@@</p>
+<p>Quindi la <strong>convergenza è sublineare</strong>: più lenta, ma il costo per iterazione è molto inferiore.</p>
+<h3 id="confronto-finale">✅ Confronto Finale</h3>
+<ul>
+<li><strong>GD</strong>: più costoso per iterazione, ma converge <strong>molto più velocemente</strong> (esponenzialmente in @@MATH_INLINE_155@@).</li>
+<li><strong>SGD</strong>: estremamente efficiente per iterazione, ma servono più passi per avvicinarsi all&rsquo;ottimo.</li>
+</ul>
+<p>In pratica, <strong>SGD</strong> è preferito nei grandi dataset (dove @@MATH_INLINE_156@@ è molto grande), mentre <strong>GD</strong> è ideale per problemi più piccoli o ben condizionati.</p>
+<h2 id="conclusioni">Conclusioni</h2>
+<p>La discesa del gradiente si conferma come uno degli algoritmi fondamentali nell&rsquo;ottimizzazione di modelli matematici e machine learning. Attraverso un&rsquo;analisi multidimensionale, emergono chiaramente diversi aspetti cruciali:</p>
+<ol>
+<li><strong>Natura Iterativa e Sfide</strong>:</li>
+</ol>
+<ul>
+<li>La dipendenza dalle condizioni iniziali e la presenza di minimi locali in funzioni non convesse sottolineano l&rsquo;importanza di strategie di inizializzazione robuste.</li>
+<li>I punti di sella, sebbene teoricamente problematici, risultano meno critici in pratica grazie all&rsquo;instabilità numerica e all&rsquo;alta dimensionalità degli spazi di parametri.</li>
+</ul>
+<ol start="2">
+<li><strong>Differenziabilità e Continuità</strong>:</li>
+</ol>
+<ul>
+<li>La differenziabilità della funzione obiettivo è un requisito essenziale per il calcolo del gradiente, con implicazioni pratiche nella scelta delle funzioni di attivazione e di loss.</li>
+<li>Casi patologici come funzioni con derivate parziali discontinue evidenziano la necessità di verifiche analitiche preliminari.</li>
+</ul>
+<ol start="3">
+<li><strong>Aspetti Implementativi</strong>:</li>
+</ol>
+<ul>
+<li>Il <em>learning rate</em> si rivela un iperparametro critico, con strategie come il decadimento dinamico e il <em>line search</em> che mitigano rischi di divergenza o convergenza lenta.</li>
+<li>L&rsquo;eterogeneità delle curvature del terreno di ottimizzazione motiva l&rsquo;adozione di tecniche avanzate come il momentum, che accelerano la convergenza smorzando le oscillazioni.</li>
+</ul>
+<ol start="4">
+<li><strong>Trade-off Computazionali</strong>:</li>
+</ol>
+<ul>
+<li>Il confronto tra Batch GD, SGD e Mini-Batch GD delinea un chiaro compromesso tra precisione, costo computazionale e rumore stocastico, con la variante Mini-Batch che rappresenta spesso il miglior bilanciamento per applicazioni su larga scala.</li>
+<li>I limiti superiori asintotici rivelano come SGD sia preferibile in scenari <em>big data</em> nonostante una convergenza teorica più lenta, grazie alla scalabilità indipendente dalla dimensione del dataset.</li>
+</ul>
+<ol start="5">
+<li><strong>Prospettive Moderne</strong>:</li>
+</ol>
+<ul>
+<li>Estensioni come Nesterov Momentum e ottimizzatori adattativi (es. Adam) ereditano i principi della discesa del gradiente classica, integrando meccanismi di auto-regolazione per gestire paesaggi di loss complessi.</li>
+</ul>
+<p>In sintesi, la discesa del gradiente non è solo un algoritmo ma un <em>framework concettuale</em> che unisce rigore matematico e pragmatismo computazionale. La sua efficacia deriva dall&rsquo;armonia tra teoria dell&rsquo;ottimizzazione, intuizione geometrica e adattamento alle sfide ingegneristiche, rendendolo uno strumento indispensabile nell&rsquo;era dei modelli ad alta dimensionalità.</p>

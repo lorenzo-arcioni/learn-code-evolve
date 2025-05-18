@@ -171,12 +171,12 @@ def parse_markdown_content(file_path: str):
             'fenced_code', 'tables', 'nl2br', 'md_in_html', 'extra',
             'attr_list', 'smarty', 'toc', 'admonition', 'def_list',
             'footnotes', 'sane_lists',
-            CodeHiliteExtension(linenums=False, guess_lang=True, css_class='codehilite'),
+            CodeHiliteExtension(linenums=False, guess_lang=False, css_class='codehilite'),
         ]
         extension_configs = {
             'codehilite': {
                 'linenums': False,
-                'guess_lang': True,
+                'guess_lang': False,
                 'css_class': 'codehilite'
             }
         }
@@ -189,21 +189,25 @@ def parse_markdown_content(file_path: str):
 
         def wrap_code(match):
             code_block = match.group(0)
-            button = (
-                '<button class="copy-button" '
-                'onclick="(function(btn){'
-                'var code=btn.parentElement.querySelector(\'pre\');'
-                'if(code){navigator.clipboard.writeText(code.innerText);'
-                'btn.textContent=\'Copied!\';'
-                'setTimeout(function(){btn.textContent=\'Copy\';},2000);} '
-                '})(this)">Copy</button>'
-            )
-            return (
-                '<details class="code-container">\n'
-                '<summary>Code</summary>\n'
-                '<div class="code-wrapper">\n' + button + '\n' + code_block + '\n</div>\n'
-                '</details>'
-            )
+
+            if str(code_block).count('</span>') > 3:
+                button = (
+                    '<button class="copy-button" '
+                    'onclick="(function(btn){'
+                    'var code=btn.parentElement.querySelector(\'pre\');'
+                    'if(code){navigator.clipboard.writeText(code.innerText);'
+                    'btn.textContent=\'Copied!\';'
+                    'setTimeout(function(){btn.textContent=\'Copy\';},2000);} '
+                    '})(this)">Copy</button>'
+                )
+                return (
+                    '<details class="code-container">\n'
+                    '<summary>Code</summary>\n'
+                    '<div class="code-wrapper">\n' + button + '\n' + code_block + '\n</div>\n'
+                    '</details>'
+                )
+            else:
+                return code_block
 
         html_with_wrappers = re.sub(r'(<div class="codehilite"[\s\S]*?<\/div>)', wrap_code, html_body)
 
@@ -216,6 +220,8 @@ def parse_markdown_content(file_path: str):
         html_content = remove_math_paragraphs(html_content)
         html_content = process_obsidian_links(html_content)
         html_content = process_image_links(html_content)
+        html_content = html_content.replace('\\$', '$')
+        html_content = html_content.replace('\\space', ' ')
         
         return {
             "title": title,

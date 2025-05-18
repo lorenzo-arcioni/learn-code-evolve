@@ -43,7 +43,7 @@ Quindi, ad esempio, *Julius Caesar* può essere rappresentato dal vettore:
 
 $$ \text{Julius Caesar} = (5, 32, 0, 0) $$
 
-<img src="/static/images/tikz/4a918b152a58a2cb8e3f83b2e9d5e46e.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/4a918b152a58a2cb8e3f83b2e9d5e46e.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 ## 2. Matrice Parola-Parola (Co-occorrenze)
 

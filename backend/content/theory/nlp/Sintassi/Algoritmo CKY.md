@@ -457,7 +457,7 @@ $$
 
 Basta partire ora dalla prima $S_i$ trovata per costruire l'albero di derivazione:
 
-<img src="/static/images/tikz/8de168a4143ee4725cd1a0829334cf31.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/8de168a4143ee4725cd1a0829334cf31.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 ## Limiti dell'algoritmo CKY
 

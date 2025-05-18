@@ -56,6 +56,7 @@ const TheoryTopic = () => {
         },
         TeX: {
           Macros: {
+            bm: ["\\\\boldsymbol{#1}", 1],
             argmin: "\\\\mathop{\\\\mathrm{argmin}}\\\\limits",
             argmax: "\\\\mathop{\\\\mathrm{argmax}}\\\\limits"
           }

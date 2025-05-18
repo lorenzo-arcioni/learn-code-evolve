@@ -347,7 +347,7 @@ $$
    Tutte le frasi iniziano con `<s>`.
 
 ### Diagramma della Catena di Markov:
-<img src="/static/images/tikz/d9a8452a4780687bb03acb8df4eef9ef.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/d9a8452a4780687bb03acb8df4eef9ef.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 ## 🔷 Conclusioni Finali  
 

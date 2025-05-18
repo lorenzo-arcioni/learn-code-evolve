@@ -72,7 +72,7 @@ process_file() {
             fi
             
             # Aggiungi il riferimento all'immagine
-            echo "<img src=\"${svg_path:1}\" style=\"width: 100%; height: auto; max-height: 600px;\" class=\"tikz-svg\" />" >> "$temp_file"
+            echo "<img src=\"${svg_path:1}\" style=\"display: block; width: 100%; height: auto; max-height: 600px;\" class=\"tikz-svg\" />" >> "$temp_file"
             replace_section=0
             continue
         fi

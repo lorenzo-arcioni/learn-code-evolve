@@ -74,7 +74,7 @@ WordNet può essere visto come un **grafo**, in cui i nodi sono synset e gli arc
 
 📌 **Placeholder per immagine**:
 
-<img src="/static/images/tikz/b06bb0bacf179b9d5af5dd94aeebc520.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/b06bb0bacf179b9d5af5dd94aeebc520.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 ## 🌐 WordNet come Rete Semantica
 

@@ -1,0 +1,442 @@
+Trovati 5 blocchi di codice Python
+
+--- BLOCCO 1 ---
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D  # Necessario per i plot 3D
+
+# Definizione della funzione f(x, y)
+def f(x, y):
+    """
+    Esempio di funzione con più minimi locali.
+    Puoi modificarla come preferisci.
+    """
+    return 0.2 * (x**2 + y**2) + 2.0 * np.sin(x) * np.sin(y)
+
+# Definizione del gradiente di f(x, y)
+def grad_f(x, y):
+    """
+    Calcola il gradiente di f(x, y): restituisce (df/dx, df/dy).
+    """
+    dfdx = 0.4 * x + 2.0 * np.cos(x) * np.sin(y)
+    dfdy = 0.4 * y + 2.0 * np.sin(x) * np.cos(y)
+    return dfdx, dfdy
+
+# Creazione della griglia di punti per i plot
+N = 200  # Numero di punti per dimensione
+x_vals = np.linspace(-3, 3, N)
+y_vals = np.linspace(-3, 3, N)
+X, Y = np.meshgrid(x_vals, y_vals)
+Z = f(X, Y)
+
+# Calcolo del gradiente su una griglia più rada per la visualizzazione del campo vettoriale
+step = 15  # Passo per la selezione dei punti per il campo vettoriale
+x_quiver = X[::step, ::step]
+y_quiver = Y[::step, ::step]
+dfdx, dfdy = grad_f(x_quiver, y_quiver)
+
+# Creazione della figura con 2 righe e 2 colonne, usando width_ratios per modificare le dimensioni dei subplot in alto
+fig = plt.figure(figsize=(16, 10))
+gs = fig.add_gridspec(2, 2, width_ratios=[3, 2])
+
+# -------------------------------------------------------------------------
+# Pannello 1 (in alto a sinistra): Plot 3D della superficie (più grande)
+# -------------------------------------------------------------------------
+ax1 = fig.add_subplot(gs[0, 0], projection='3d')
+surf = ax1.plot_surface(X, Y, Z, cmap='viridis', edgecolor='none', alpha=0.9)
+ax1.set_title('Superficie 3D')
+ax1.set_xlabel('x')
+ax1.set_ylabel('y')
+ax1.set_zlabel('f(x, y)')
+
+# -------------------------------------------------------------------------
+# Pannello 2 (in alto a destra): Mappa di colore e curve di livello (più quadrato)
+# -------------------------------------------------------------------------
+ax2 = fig.add_subplot(gs[0, 1])
+cont = ax2.contourf(X, Y, Z, levels=30, cmap='viridis')
+ax2.contour(X, Y, Z, levels=10, colors='black', linewidths=0.5)
+ax2.set_title('Mappa di colore e curve di livello')
+ax2.set_xlabel('x')
+ax2.set_ylabel('y')
+ax2.set_aspect('equal', adjustable='box')  # Forza un aspetto quadrato
+cbar = plt.colorbar(cont, ax=ax2)
+cbar.set_label('Valore di f(x, y)')
+
+# -------------------------------------------------------------------------
+# Pannello 3 (in basso a sinistra): Campo vettoriale del gradiente positivo
+# -------------------------------------------------------------------------
+ax3 = fig.add_subplot(gs[1, 0])
+ax3.contourf(X, Y, Z, levels=30, cmap='viridis', alpha=0.7)
+ax3.contour(X, Y, Z, levels=10, colors='black', linewidths=0.5, alpha=0.5)
+Q = ax3.quiver(x_quiver, y_quiver, dfdx, dfdy, color='red', scale=50)
+ax3.set_title('Campo vettoriale del gradiente')
+ax3.set_xlabel('x')
+ax3.set_ylabel('y')
+ax3.set_aspect('equal')
+
+# -------------------------------------------------------------------------
+# Pannello 4 (in basso a destra): Campo vettoriale del gradiente negativo
+# -------------------------------------------------------------------------
+ax4 = fig.add_subplot(gs[1, 1])
+ax4.contourf(X, Y, Z, levels=30, cmap='viridis', alpha=0.7)
+ax4.contour(X, Y, Z, levels=10, colors='black', linewidths=0.5, alpha=0.5)
+Q2 = ax4.quiver(x_quiver, y_quiver, -dfdx, -dfdy, color='red', scale=50)
+ax4.set_title('Campo vettoriale del gradiente negativo')
+ax4.set_xlabel('x')
+ax4.set_ylabel('y')
+ax4.set_aspect('equal')
+
+plt.tight_layout()
+plt.savefig('./images/gradient.jpg', 
+           dpi=300, 
+           bbox_inches='tight',
+           pad_inches=0.05,  # Aggiungere questo parametro
+           #facecolor=fig.get_facecolor(),  # Mantenere il colore di sfondo
+           transparent=False)  # Disabilitare la trasparenza
+plt.show()
+```
+
+--- BLOCCO 2 ---
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Definizione della funzione e del suo gradiente
+def f(x, y):
+    return 0.5 * x**2 + y**2
+
+def grad_f(x, y):
+    return x, 2 * y
+
+# Creazione della griglia di punti
+N = 200
+x_vals = np.linspace(-2, 2, N)
+y_vals = np.linspace(-2, 2, N)
+X, Y = np.meshgrid(x_vals, y_vals)
+Z = f(X, Y)
+
+# Punto di interesse P0
+P0 = (1, 1)
+gx, gy = grad_f(P0[0], P0[1])  # gradiente in P0
+
+# Calcolo della direzione tangente (v) a partire dalla condizione: <grad, v> = 0
+# Scegliamo v = (2, -1) che è ortogonale a (1,2) (poichè 1*2 + 2*(-1) = 0)
+v = np.array([2, -1], dtype=float)
+v = v / np.linalg.norm(v)  # normalizzo
+
+# Calcolo del vettore -gradiente in P0 (direzione di discesa)
+neg_grad = -np.array([gx, gy])
+if np.linalg.norm(neg_grad) > 1e-10:
+    neg_grad_unit = neg_grad / np.linalg.norm(neg_grad)
+else:
+    neg_grad_unit = neg_grad
+
+# Lunghezze per le frecce
+arrow_len = 0.5
+
+# Creazione della figura con 3 pannelli affiancati
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+
+# ---------------------------
+# Pannello 1: Curva di livello + vettore tangente (df/dv = 0)
+# ---------------------------
+ax1 = axes[0]
+cont1 = ax1.contour(X, Y, Z, levels=15, cmap='viridis')
+ax1.plot(P0[0], P0[1], 'ko', label=r'$P_0$')
+# Calcolo del punto finale per la freccia tangente
+P1 = (P0[0] + arrow_len * v[0], P0[1] + arrow_len * v[1])
+ax1.annotate('', xy=P1, xytext=P0, 
+             arrowprops=dict(arrowstyle='->', color='blue', lw=2))
+ax1.set_title(r'Vettore tangente: $\frac{df}{dv}(P_0)=0$')
+ax1.set_xlabel('x')
+ax1.set_ylabel('y')
+ax1.set_aspect('equal')
+
+# ---------------------------
+# Pannello 2: Curva di livello + vettore -gradiente
+# ---------------------------
+ax2 = axes[1]
+cont2 = ax2.contour(X, Y, Z, levels=15, cmap='viridis')
+ax2.plot(P0[0], P0[1], 'ko', label=r'$P_0$')
+# Punto finale per la freccia -gradiente
+P2 = (P0[0] + arrow_len * neg_grad_unit[0], P0[1] + arrow_len * neg_grad_unit[1])
+ax2.annotate('', xy=P2, xytext=P0,
+             arrowprops=dict(arrowstyle='->', color='red', lw=2))
+ax2.set_title(r'Vettore -$\nabla f$ in $P_0$')
+ax2.set_xlabel('x')
+ax2.set_ylabel('y')
+ax2.set_aspect('equal')
+
+# ---------------------------
+# Pannello 3: Campo vettoriale dell'intero gradiente
+# ---------------------------
+ax3 = axes[2]
+cont3 = ax3.contourf(X, Y, Z, levels=15, cmap='viridis', alpha=0.7)
+ax3.contour(X, Y, Z, levels=15, colors='black', linewidths=0.5, alpha=0.5)
+# Campo vettoriale (quiver) per il gradiente
+step = 10
+xq = X[::step, ::step]
+yq = Y[::step, ::step]
+gxq, gyq = grad_f(xq, yq)
+ax3.quiver(xq, yq, gxq, gyq, color='red', scale=30)
+ax3.set_title(r'Campo vettoriale: $\nabla f$')
+ax3.set_xlabel('x')
+ax3.set_ylabel('y')
+ax3.set_aspect('equal')
+
+plt.tight_layout()
+plt.savefig('./images/gradient.jpg', 
+           dpi=300, 
+           bbox_inches='tight',
+           pad_inches=0.05,  # Aggiungere questo parametro
+           #facecolor=fig.get_facecolor(),  # Mantenere il colore di sfondo
+           transparent=False)  # Disabilitare la trasparenza
+plt.show()
+```
+
+--- BLOCCO 3 ---
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Dati sintetici
+np.random.seed(42)
+X = np.random.randn(100, 1)
+y = 3 * X.squeeze() + 2 + np.random.randn(100) * 0.5
+
+# Funzione di perdita
+def loss(w, b, X, y):
+    y_pred = w * X.squeeze() + b
+    return np.mean((y - y_pred) ** 2)
+
+# Gradiente
+def gradients(w, b, X, y):
+    y_pred = w * X.squeeze() + b
+    error = y_pred - y
+    dw = 2 * np.mean(error * X.squeeze())
+    db = 2 * np.mean(error)
+    return dw, db
+
+# Allenamento
+def train(alpha, steps=30):
+    w, b = 0.0, 0.0
+    trajectory = [(w, b)]
+    for _ in range(steps):
+        dw, db = gradients(w, b, X, y)
+        w -= alpha * dw
+        b -= alpha * db
+        trajectory.append((w, b))
+    return trajectory
+
+# Parametri per i plot
+alphas = [0.01, 0.1, 0.95]
+titles = ['Small α', 'Optimal α', 'Large α']
+colors = ['#1f77b4', '#2ca02c', '#d62728']
+trajectories = [train(alpha) for alpha in alphas]
+
+# Curve di livello
+w_range = np.linspace(-1, 5, 100)
+b_range = np.linspace(0, 5, 100)
+W, B = np.meshgrid(w_range, b_range)
+Z = np.array([[loss(w, b, X, y) for w in w_range] for b in b_range])
+
+# Plot
+fig, axs = plt.subplots(1, 3, figsize=(18, 5), sharey=True)
+for ax, traj, title, color in zip(axs, trajectories, titles, colors):
+    contours = ax.contour(W, B, Z, levels=50, cmap='cividis')
+    w_vals, b_vals = zip(*traj)
+    ax.plot(w_vals, b_vals, marker='o', color=color, linewidth=2, alpha=0.8, label=title)
+    ax.plot(3, 2, marker='*', color='black', markersize=15, label='Minimo')
+    ax.set_title(title, fontsize=14)
+    ax.set_xlabel('w')
+    ax.grid(True, linestyle='--', alpha=0.5)
+    ax.legend()
+axs[0].set_ylabel('b')
+plt.suptitle('Confronto tra traiettorie di gradient descent con diversi learning rate', fontsize=16)
+plt.tight_layout()
+plt.subplots_adjust(top=0.85)
+plt.show()
+```
+
+--- BLOCCO 4 ---
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Dati sintetici
+np.random.seed(42)
+X = np.random.randn(100, 1)
+y = 3 * X.squeeze() + 2 + np.random.randn(100) * 0.5
+
+# Funzione di perdita
+def loss(w, b, X, y):
+    y_pred = w * X.squeeze() + b
+    return np.mean((y - y_pred) ** 2)
+
+# Gradiente
+def gradients(w, b, X, y):
+    y_pred = w * X.squeeze() + b
+    error = y_pred - y
+    dw = 2 * np.mean(error * X.squeeze())
+    db = 2 * np.mean(error)
+    return dw, db
+
+# Addestramento con step uniformi
+def train(method='batch', batch_size=10, steps=30, alpha=0.1):
+    w, b = 0.0, 0.0
+    trajectory = [(w, b)]
+    
+    if method == 'batch':
+        for _ in range(steps):
+            dw, db = gradients(w, b, X, y)
+            w -= alpha * dw
+            b -= alpha * db
+            trajectory.append((w, b))
+
+    elif method == 'sgd':
+        indices = np.random.permutation(len(X))
+        for i in range(steps):
+            idx = indices[i % len(X)]
+            dw, db = gradients(w, b, X[idx:idx+1], y[idx:idx+1])
+            w -= alpha * dw
+            b -= alpha * db
+            trajectory.append((w, b))
+
+    elif method == 'minibatch':
+        batch_size = max(1, len(X) // steps)
+        for i in range(steps):
+            indices = np.random.choice(len(X), batch_size, replace=False)
+            X_batch = X[indices]
+            y_batch = y[indices]
+            dw, db = gradients(w, b, X_batch, y_batch)
+            w -= alpha * dw
+            b -= alpha * db
+            trajectory.append((w, b))
+            
+    return trajectory
+
+# Tracciamento traiettorie (30 step)
+traj_batch = train(method='batch', steps=30)
+traj_sgd = train(method='sgd', steps=30)
+traj_minibatch = train(method='minibatch', steps=30)
+
+# Curve di livello
+w_range = np.linspace(-1, 5, 100)
+b_range = np.linspace(0, 5, 100)
+W, B = np.meshgrid(w_range, b_range)
+Z = np.array([[loss(w, b, X, y) for w in w_range] for b in b_range])
+
+# Livelli coerenti e ordinati
+min_loss = np.min(Z)
+lower_limit = min(min_loss, 0.5)
+all_levels = np.linspace(lower_limit, np.max(Z), 50)
+
+# Plot
+plt.figure(figsize=(12, 8))
+contours = plt.contour(W, B, Z, levels=all_levels, cmap='cividis')
+plt.clabel(contours, inline=True, fontsize=8, fmt='%.2f')
+
+# Colori desaturati
+colors = ['#3e8250', '#567991', '#b05541']
+
+# Traiettorie
+for traj, label, color in zip([traj_batch, traj_sgd, traj_minibatch],
+                              ['Batch GD', 'SGD', 'Mini-Batch GD'],
+                              colors):
+    w_vals, b_vals = zip(*traj)
+    plt.plot(w_vals, b_vals, marker='o', label=label, linewidth=2, alpha=0.7, color=color)
+
+# Minimo globale (approssimato analiticamente: w=3, b=2)
+plt.plot(3, 2, marker='*', color='black', markersize=15, label='Minimo')
+
+# Zoom centrato ma visibile anche l'origine
+plt.xlim(-0.1, 4.0)
+plt.ylim(0.0, 3.5)
+
+# Stile
+plt.xlabel('w', fontsize=12)
+plt.ylabel('b', fontsize=12)
+plt.title('Curve di livello della funzione di perdita con traiettorie', fontsize=14)
+plt.legend()
+plt.grid(True, linestyle='--', alpha=0.5)
+plt.tight_layout()
+plt.show()
+```
+
+--- BLOCCO 5 ---
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Funzione di costo
+def f(x, y):
+    return 0.5 * (x**2 + 10 * y**2)
+
+# Gradiente della funzione
+def grad_f(x, y):
+    return np.array([x, 10 * y])
+
+# GD semplice
+def gradient_descent(start, lr, steps):
+    x = np.zeros((steps, 2))
+    x[0] = start
+    for i in range(1, steps):
+        grad = grad_f(*x[i-1])
+        x[i] = x[i-1] - lr * grad
+    return x
+
+# GD con momentum
+def gradient_descent_momentum(start, lr, steps, gamma):
+    x = np.zeros((steps, 2))
+    v = np.zeros(2)
+    x[0] = start
+    for i in range(1, steps):
+        grad = grad_f(*x[i-1])
+        v = gamma * v + lr * grad
+        x[i] = x[i-1] - v
+    return x
+
+# Parametri
+start = np.array([-4.0, 2.0])
+steps = 80
+lr = 0.01
+gamma = 0.75
+optimum = np.array([0.0, 0.0])  # punto di minimo
+
+# Percorsi
+path_gd = gradient_descent(start, lr, steps)
+path_mom = gradient_descent_momentum(start, lr, steps, gamma)
+
+# Contorno della funzione
+X, Y = np.meshgrid(np.linspace(-5, 5, 400), np.linspace(-3, 3, 400))
+Z = f(X, Y)
+levels = np.logspace(-0.5, 3, 20)
+
+# Setup figura allungata
+fig, axs = plt.subplots(2, 1, figsize=(12, 5), dpi=150)
+
+for ax, path, title in zip(
+    axs,
+    [path_gd, path_mom],
+    ['(a) Without momentum', '(b) With momentum']
+):
+    ax.contour(X, Y, Z, levels=levels, cmap='Greens_r', alpha=0.1)
+    ax.plot(path[:, 0], path[:, 1], color='darkorange', marker='o', markersize=2)
+    
+    # Starting point e Solution
+    ax.annotate('Starting Point', xy=path[0], xytext=(-4.8, 2.3), arrowprops=dict(arrowstyle='->'))
+    ax.annotate('Solution', xy=path[-1], xytext=(-2.5, -1.7), arrowprops=dict(arrowstyle='->'))
+    
+    # Ottimo
+    ax.plot(*optimum, 'o', color='steelblue', markersize=6)
+    ax.annotate('Optimum', xy=optimum, xytext=(0.5, 0.3), textcoords='data', ha='left',
+                arrowprops=dict(arrowstyle='->', color='black'))
+
+    ax.set_title(title)
+    ax.axis('off')
+
+plt.tight_layout()
+plt.show()
+```
+

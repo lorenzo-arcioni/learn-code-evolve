@@ -21,7 +21,7 @@
 Il pattern matching con regex si basa su regole di sintassi che combinano:  
 - **Caratteri letterali**: Cercano corrispondenze esatte (es. `cane` trova solo "cane").  
 - **Quantificatori**: Specificano quante volte un elemento può ripetersi (es. `?`, `+`, `*`).  
-- **Ancore**: Definiscono la posizione nel testo (es. `^` per l'inizio riga, `$` per la fine).  
+- **Ancore**: Definiscono la posizione nel testo (es. `^` per l'inizio riga, `\$` per la fine).  
 - **Classi di caratteri**: Raggruppano opzioni valide (es. `[aeiou]` per vocali).
 - **Range**: Definiscono un intervallo di caratteri (es. `[a-z]` per lettere minuscole).
 - **Gruppi**: Isolano parti del pattern con `()` per riferimenti o operazioni specifiche.  
@@ -31,7 +31,7 @@ Il pattern matching con regex si basa su regole di sintassi che combinano:
 ### Caratteri Letterali
 - **Caratteri Literali**: `a`, `b`, `c`, `d`, `e`, `f`, `g`, `h`, `i`, `j`, `k`, `l`, `m`, `n`, `o`, `p`, `q`, `r`, `s`, `t`, `u`, `v`, `w`, `x`, `y`, `z`.
 - **Caratteri Numerici**: `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`. 
-- **Caratteri Speciali**: ` `, `\t`, `\n`, `\r`, `\f`, `\b`, `\a`, `\e`, `\0`, `\xHH`, `\uHHHH`, `\UHHHHHHHH`.
+- **Caratteri Speciali**: `\space`, `\t`, `\n`, `\r`, `\f`, `\b`, `\a`, `\e`, `\0`, `\xHH`, `\uHHHH`, `\UHHHHHHHH`.
 - **Carattere di Escape**: `\`, `\\`, `\n`, `\t`, `\r`, `\f`, `\b`, `\a`, `\e`, `\0`, `\xHH`, `\uHHHH`, `\UHHHHHHHH`.
 
 ### Metacaratteri

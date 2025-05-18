@@ -268,7 +268,7 @@ Ogni nodo dell'albero rappresenta una categoria grammaticale (come S, NP, VP, ec
 
 L'albero generato avrà struttura:
 
-<img src="/static/images/tikz/db082d3fc019182e48a347e0a02abda7.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/db082d3fc019182e48a347e0a02abda7.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 ### 2️⃣ Semantica lessicale: assegnazione di significati ai terminali
 
 A ciascun **terminale dell'albero** (cioè ogni parola) viene assegnata una **forma semantica in lambda calcolo**.

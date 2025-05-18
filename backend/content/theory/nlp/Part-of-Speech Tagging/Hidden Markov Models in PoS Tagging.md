@@ -289,7 +289,7 @@ some/DT dogs/NNS bark/VBP
 
 #### 4. Rappresentazione TikZ del modello HMM
 
-<img src="/static/images/tikz/3bfdc9c4c841833e4ad94f4100c0c1d9.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/3bfdc9c4c841833e4ad94f4100c0c1d9.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 #### Conclusione
 

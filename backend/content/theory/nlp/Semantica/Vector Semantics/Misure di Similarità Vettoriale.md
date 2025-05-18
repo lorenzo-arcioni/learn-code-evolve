@@ -248,7 +248,7 @@ che è esattamente la definizione della **similarità coseno**. $\square$
 | $90^\circ$ | Vettori ortogonali               | $0$ |
 | $180^\circ$ | Vettori paralleli, verso opposto | $-1$ |
 
-<img src="/static/images/tikz/bf74f0743b6e427e2214b06c887d9e3f.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/bf74f0743b6e427e2214b06c887d9e3f.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 - **L'angolo tra $\mathbf{x}$ e $\mathbf{y}$** determina il valore della similarità coseno.
 - **Non conta quanto sono lunghi** $\mathbf{x}$ e $\mathbf{y}$: solo **l'orientamento**.

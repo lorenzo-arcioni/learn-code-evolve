@@ -119,7 +119,7 @@ L’ambiguità non è un fenomeno raro. Analizzando il **Brown Corpus**, un corp
 
 💡 **Interpretazione**: anche se solo una piccola parte dei lemmi è ambigua, queste parole compaiono molto spesso nei testi, rendendo l’ambiguità un problema ricorrente nei corpus reali.
 
-<img src="/static/images/tikz/7246a8d7f940889d420ec983437a71e0.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/7246a8d7f940889d420ec983437a71e0.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 ## Rule-based PoS tagging (dagli anni '60)
 

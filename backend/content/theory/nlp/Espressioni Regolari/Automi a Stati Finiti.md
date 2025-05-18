@@ -16,7 +16,7 @@ Gli automi a stati finiti fanno parte dei **rule-based systems**, come le [[Espr
 - **Regex corrispondente**: `/baa+!/`.
 
 ### Automa Corrispondente
-<img src="/static/images/tikz/c2065ac9f7677b8cda1c2e7e9cba0f18.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/c2065ac9f7677b8cda1c2e7e9cba0f18.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 ### Definita come FSA
 
@@ -66,7 +66,7 @@ con $M$ un FSA.
 | $RE^*$ (Kleene Star)   | FSA con loop per ripetizioni $L^* = \bigcup_{n=0}^{\infty} L^n$ chiamado [[Chiusura di Kleene]]   |
 
 **Esempio**: Regex `(a|b)*c`  
-<img src="/static/images/tikz/eff741d9ebf0391963103c5db1379ad9.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/eff741d9ebf0391963103c5db1379ad9.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 ## Esercizio Guidato
 ### Dati
@@ -76,7 +76,7 @@ con $M$ un FSA.
 
 ### Soluzione
 **FSA per $L_3$**:  
-<img src="/static/images/tikz/e54d19583106f0b2fce097f729c857a5.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/e54d19583106f0b2fce097f729c857a5.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 > **Etichette**: #FSA #Regex #LinguaggiFormali  
 > **Collegamenti**: [[Espressioni Regolari]], [[Teoria degli Automi]]  

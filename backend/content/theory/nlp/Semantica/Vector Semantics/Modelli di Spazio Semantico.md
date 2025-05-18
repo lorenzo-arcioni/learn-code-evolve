@@ -12,7 +12,7 @@ L'idea centrale è associare ad ogni parola un **vettore** di numeri reali, posi
 
 In altre parole, in un VSM, parole con significati affini (come "dog" e "puppy") avranno vettori che si trovano a poca distanza l'uno dall'altro.
 
-<img src="/static/images/tikz/31e40f9cdc75074bf0d6cfb5484b2794.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/31e40f9cdc75074bf0d6cfb5484b2794.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 Come possiamo vedere, in un VSM le parole semanticamente simili sono rappresentate come punti (vettori) vicini nello spazio dei significati.
 
 ## Word Embeddings: parole nello spazio

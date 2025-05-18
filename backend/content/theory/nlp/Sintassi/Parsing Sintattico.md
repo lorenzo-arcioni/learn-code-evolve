@@ -74,23 +74,23 @@ $$
 
 Di seguito, una semplice rappresentazione del parsing di un albero sintattico per la frase "He is a student in Rome" con la radice $S$:
 
-<img src="/static/images/tikz/7200215fa19bbd707ac9891c4d6c6ab1.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
-<img src="/static/images/tikz/7cc05607c592465f3113ea1f1ee35ee5.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
-<img src="/static/images/tikz/6239c84d96fda5387fc44fd46339f2ce.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
-<img src="/static/images/tikz/d5356d9e4104dbad6d82d2eb0918bb0f.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
-<img src="/static/images/tikz/2a401a786f2da83f56ba6c461a97801c.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/7200215fa19bbd707ac9891c4d6c6ab1.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/7cc05607c592465f3113ea1f1ee35ee5.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/6239c84d96fda5387fc44fd46339f2ce.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/d5356d9e4104dbad6d82d2eb0918bb0f.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/2a401a786f2da83f56ba6c461a97801c.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 
 ### Bottom-up (data-directed)
 
 Parte dalle parole e risale combinando in costituenti.
 
-<img src="/static/images/tikz/349b24732100c60715dc4c8fe8a1926b.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
-<img src="/static/images/tikz/15c5cf38b9e0e2ffa3777e1ed08f676d.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
-<img src="/static/images/tikz/333a97a7d26529a4069e5875d3575a43.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
-<img src="/static/images/tikz/7744a28b8344e8400ac22de97145da55.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
-<img src="/static/images/tikz/87cf67ee1eb82df05562fb76c2a393fa.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
-<img src="/static/images/tikz/b1d832ebd8334f4f81304993876f8160.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/349b24732100c60715dc4c8fe8a1926b.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/15c5cf38b9e0e2ffa3777e1ed08f676d.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/333a97a7d26529a4069e5875d3575a43.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/7744a28b8344e8400ac22de97145da55.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/87cf67ee1eb82df05562fb76c2a393fa.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/b1d832ebd8334f4f81304993876f8160.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 ## Ambiguità strutturale
 

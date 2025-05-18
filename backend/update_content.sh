@@ -19,6 +19,7 @@ rm -rf ./content/theory/nlp/*
 rm -rf ./content/theory/reinforcement-learning/*
 rm -rf ./content/theory/generative-models/*
 rm -rf ./static/images/posts/*
+#rm -rf ./static/images/tikz/*
 
 cp -rf "../../my-obsidian-vault/00_Informatica/$content_1/Introduzione al Machine Learning/"* ./content/theory/introduction/
 cp -rf "../../my-obsidian-vault/00_Informatica/$content_1/Supervised Learning/"* ./content/theory/supervised-learning/

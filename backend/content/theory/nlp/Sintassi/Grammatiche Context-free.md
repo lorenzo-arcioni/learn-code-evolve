@@ -44,15 +44,15 @@ Con questa grammatica possiamo generare frasi come:
 
 - *the winter*
 
-<img src="/static/images/tikz/0b7274dea633ee2a22e28408698abbb4.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/0b7274dea633ee2a22e28408698abbb4.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 - *a night*
 
-<img src="/static/images/tikz/e86264129766ca5c4fb2071894c9d9fe.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/e86264129766ca5c4fb2071894c9d9fe.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 - *the winter night*
 
-<img src="/static/images/tikz/7dde49430529afeb60ef72caf403ac76.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/7dde49430529afeb60ef72caf403ac76.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 ## Linguaggio generato da una grammatica ($L(G)$)
 
@@ -99,7 +99,7 @@ Le **grammatiche a dipendenze** rappresentano le relazioni sintattiche (e talvol
 
 ### Esempio: *"They did the right thing"*
 
-<img src="/static/images/tikz/454268bba13ecf6c5b8502365372f9c4.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/454268bba13ecf6c5b8502365372f9c4.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 
 ### Relazioni sintattiche
 

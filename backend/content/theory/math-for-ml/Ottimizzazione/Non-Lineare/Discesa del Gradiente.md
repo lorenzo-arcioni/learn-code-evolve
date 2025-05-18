@@ -199,6 +199,10 @@ $$
 
 dove $\epsilon$ è una soglia positiva molto piccola che determina il livello di precisione desiderato.
 
+Ma ce ne sono anche altri come:
+
+- **Nessuna modifica dei parametri**: se $\Theta^{(t+1)} = \Theta^{(t)}$, il criterio di arresto viene raggiunto.
+- **Loss non migliorata**: se $|\ell_{\Theta^{(t)}} - \ell_{\Theta^{(t+1)}}| \leq \epsilon$, il criterio di arresto viene raggiunto.
 
 ## Proprietà del Gradiente
 
@@ -961,79 +965,6 @@ In sintesi, il momentum fornisce un **bilanciamento intelligente tra memoria del
 Per problemi **convessi** (dove la funzione di loss ha un solo minimo globale), possiamo analizzare quanto velocemente i metodi di discesa del gradiente si avvicinano al minimo ottimo.
 
 Assumiamo di voler trovare un punto $\Theta$ tale che la **loss** ottenuta sia entro una precisione $\rho > 0$ dall
-
-dove:
-- $\ell(f_\Theta)$ è la loss del modello corrente,
-- $\ell(f^*)$ è la loss ottima (raggiunta in teoria dal miglior modello),
-- $\rho$ è l'accuratezza desiderata.
-
-### 📌 Notazione
-
-- $n$ = numero di esempi nel dataset di training  
-- $d$ = numero di parametri (dimensione di $\Theta$)  
-- $\kappa$ = **numero di condizionamento**, ovvero $\kappa = L/\mu$, dove:
-  - $L$ è la **costante di Lipschitz** del gradiente: $\|\nabla \ell(\Theta_1) - \nabla \ell(\Theta_2)\| \le L \|\Theta_1 - \Theta_2\|$
-  - $\mu$ è la **costante di forte convessità**: $\ell(\Theta) \ge \ell(f^*) + \frac{\mu}{2}\|\Theta - \Theta^*\|^2$
-- $\nu$ = varianza del rumore stocastico nel gradiente, rilevante per SGD
-
-### ⚙️ Costo Computazionale per Iterazione
-
-| Metodo | Costo per iterazione |
-|--------|-----------------------|
-| **GD** | $O(n\,d)$              |
-| **SGD**| $O(d)$                 |
-
-- **GD**: calcola il gradiente **esatto**, sommando i contributi di tutti i $n$ esempi.
-- **SGD**: usa un **solo** esempio (o minibatch), abbattendo il costo computazionale per iterazione.
-
-### 📈 Numero di Iterazioni per Raggiungere Precisione $\rho$
-
-| Metodo | Iterazioni necessarie |
-|--------|------------------------|
-| **GD** | $O\left(\kappa \log \frac{1}{\rho}\right)$ |
-| **SGD**| $O\left(\frac{\nu \kappa^2}{\rho}\right) + o\left(\frac{1}{\rho}\right)$ |
-
-#### ✳️ Convergenza di GD (Discesa del Gradiente)
-
-Se $\ell$ è fortemente convessa e ha gradiente Lipschitz, allora:
-
-$$
-\ell(f_{\Theta^{(t)}}) - \ell(f^*) \le \left(1 - \frac{1}{\kappa} \right)^t \cdot (\ell(f_{\Theta^{(0)}}) - \ell(f^*)),
-$$
-
-che converge **esponenzialmente** verso $\ell(f^*)$. Invertendo questa relazione, bastano:
-
-$$
-t = O\left(\kappa \log \frac{1}{\rho} \right)
-$$
-
-iterazioni per raggiungere precisione $\rho$.
-
-#### ✳️ Convergenza di SGD
-
-Nel caso stocastico, ogni passo è più "rumoroso", quindi la convergenza è più lenta. Si può dimostrare che:
-
-$$
-\mathbb{E}[\ell(f_{\Theta^{(t)}})] - \ell(f^*) \le O\left( \frac{\nu \kappa^2}{t} \right),
-$$
-
-dove $\nu$ riflette la varianza del gradiente stocastico. Per ottenere precisione $\rho$, servono:
-
-$$
-t = O\left( \frac{\nu \kappa^2}{\rho} \right).
-$$
-
-Quindi la **convergenza è sublineare**: più lenta, ma il costo per iterazione è molto inferiore.
-
-### ✅ Confronto Finale
-
-- **GD**: più costoso per iterazione, ma converge **molto più velocemente** (esponenzialmente in $\rho$).
-- **SGD**: estremamente efficiente per iterazione, ma servono più passi per avvicinarsi all'ottimo.
-
-In pratica, **SGD** è preferito nei grandi dataset (dove $n$ è molto grande), mentre **GD** è ideale per problemi più piccoli o ben condizionati.
-$$
-|\ell(f_\Theta) - \ell(f^*)| < \rho,
-$$
 
 dove:
 - $\ell(f_\Theta)$ è la loss del modello corrente,

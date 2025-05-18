@@ -12,7 +12,7 @@ Il **triangolo del significato** è una rappresentazione grafica che mostra la r
 
 Questi tre elementi sono legati in modo complesso. Il simbolo (la parola) rimanda a un concetto che, a sua volta, si riferisce a un oggetto o un evento nel mondo esterno. Il triangolo dimostra che il significato di una parola non è solo una relazione diretta tra la parola e l'oggetto, ma dipende anche dalle percezioni e interpretazioni mentali degli individui.
 
-<img src="/static/images/tikz/8bd27ab398c017fd3ffb43abcf7c6f97.svg" style="width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
+<img src="/static/images/tikz/8bd27ab398c017fd3ffb43abcf7c6f97.svg" style="display: block; width: 100%; height: auto; max-height: 600px;" class="tikz-svg" />
 Questa rappresentazione mostra come i concetti di "simbolo", "concetto" e "oggetto" sono interconnessi, con ognuno che influenza e media l'altro.
 
 ### Analisi del Significato della Parola "Dog"
