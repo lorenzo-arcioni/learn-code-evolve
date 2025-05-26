@@ -51,13 +51,13 @@ Questa suddivisione di parametri consente al modello di catturare dinamiche dive
 
 - **Ruoli diversi**: 
 
-  - $\mathbf{\theta}_W$: embedding quando la parola è **centro** (target da cui si predice).  
-  - $\mathbf{\theta}_C$: embedding quando la parola è **contesto** (segnale per la previsione).
+  - $\bm{\theta}_W$: embedding quando la parola è **centro** (target da cui si predice).  
+  - $\bm{\theta}_C$: embedding quando la parola è **contesto** (segnale per la previsione).
 
 - **Esempio** (“Il **gatto** nero dorme…”):
 
-  - “gatto” → $\mathbf{\theta}_W$ cattura come “gatto” governa il contesto (“nero”, “dorme”).  
-  - “nero”, “dorme” → $\mathbf{\theta}_C$ catturano come questi agiscono da indizi per “gatto”.
+  - “gatto” → $\bm{\theta}_W$ cattura come “gatto” governa il contesto (“nero”, “dorme”).  
+  - “nero”, “dorme” → $\bm{\theta}_C$ catturano come questi agiscono da indizi per “gatto”.
 
 ### ⚠️ Problemi con un singolo embedding
 
@@ -107,15 +107,15 @@ Ovvero:
 
 Immagina il vocabolario come una lista di parole:
 
-| Indice | Parola      | Embedding Centro ($\mathbf{\theta}_W$) | Embedding Contesto ($\mathbf{\theta}_C$) |
+| Indice | Parola      | Embedding Centro ($\bm{\theta}_W$) | Embedding Contesto ($\bm{\theta}_C$) |
 |--------|-------------|-----------------------------------------|--------------------------------------------|
 | 1      | "lemon"     | vettore in $\mathbb{R}^D$              | vettore in $\mathbb{R}^D$                 |
 | 2      | "tablespoon"| vettore in $\mathbb{R}^D$              | vettore in $\mathbb{R}^D$                 |
 | ...    | ...         | ...                                     | ...                                        |
 | \|V\|    | "jam"       | vettore in $\mathbb{R}^D$              | vettore in $\mathbb{R}^D$                 |
 
-- Quando "tablespoon" è parola centro, useremo la riga 2 di $\mathbf{\theta}_W$.
-- Quando "tablespoon" è nel contesto, useremo la riga 2 di $\mathbf{\theta}_C$.
+- Quando "tablespoon" è parola centro, useremo la riga 2 di $\bm{\theta}_W$.
+- Quando "tablespoon" è nel contesto, useremo la riga 2 di $\bm{\theta}_C$.
 
 ### Perché sono vettori?
 
@@ -126,7 +126,7 @@ Rappresentare le parole come vettori in uno spazio continuo di dimensione $D$ co
 
 ### Riassumendo:
 
-- $\mathbf{\theta}_W$ e $\mathbf{\theta}_C$ sono matrici di embedding distinte per parola centro e contesto.
+- $\bm{\theta}_W$ e $\bm{\theta}_C$ sono matrici di embedding distinte per parola centro e contesto.
 - Entrambe hanno dimensione $|V| \times D$.
 - Complessivamente abbiamo $2 \cdot |V| \times D$ parametri da imparare.
 - Questo doppio embedding è la chiave per modellare le relazioni tra parole in un modo più ricco e flessibile.
@@ -153,11 +153,11 @@ Il modello considera una finestra di contesto di ampiezza $m$ (ad esempio $m=2$)
 
 Vogliamo modellare la probabilità congiunta di osservare le parole di contesto data la parola centrale $w_t$, ossia:
 
-$$\mathbb P(w_{t-2}, w_{t-1}, w_{t+1}, w_{t+2} \mid w_t; \mathbf{\theta}) $$
+$$\mathbb P(w_{t-2}, w_{t-1}, w_{t+1}, w_{t+2} \mid w_t; \bm{\theta}) $$
 
 Per semplicità si assume una **forte indipendenza condizionata** tra le parole di contesto dato il centro:
 
-$$ \mathbb P(w_{t-2}, w_{t-1}, w_{t+1}, w_{t+2} \mid w_t; \mathbf{\theta}) \approx \prod_{j=-m, j \neq 0}^{m} \mathbb P(w_{t+j} \mid w_t; \mathbf{\theta})$$
+$$ \mathbb P(w_{t-2}, w_{t-1}, w_{t+1}, w_{t+2} \mid w_t; \bm{\theta}) \approx \prod_{j=-m, j \neq 0}^{m} \mathbb P(w_{t+j} \mid w_t; \bm{\theta})$$
 
 Questo significa che ogni parola di contesto è indipendente dalle altre data la parola centrale.
 
@@ -165,8 +165,8 @@ Questo significa che ogni parola di contesto è indipendente dalle altre data la
 
 Dato un centro $w_t$, vogliamo predire la parola di contesto $w_{t+j}$. Questa probabilità è modellata come una distribuzione categorica su tutto il vocabolario $V$.
 
-1. Prendiamo l'embedding della parola centro: se $i$ è l'indice di $w_t$ in $\mathbf{\theta}_W$, consideriamo il vettore riga $\mathbf{\theta}_W^i$ (di dimensione $1 \times |D|$).
-2. Calcoliamo i punteggi (logits) per tutte le parole del vocabolario come prodotto scalare tra ogni vettore di contesto in $\mathbf{\theta}_C$ e l'embedding del centro:
+1. Prendiamo l'embedding della parola centro: se $i$ è l'indice di $w_t$ in $\bm{\theta}_W$, consideriamo il vettore riga $\bm{\theta}_W^i$ (di dimensione $1 \times |D|$).
+2. Calcoliamo i punteggi (logits) per tutte le parole del vocabolario come prodotto scalare tra ogni vettore di contesto in $\bm{\theta}_C$ e l'embedding del centro:
 
    $$
    \underbrace{\mathbf{z}_i}_{|V|\times 1}=\overbrace{\underbrace{\bm{\theta}_C}_{|V|\times D}}^{\text{as context}}\cdot\overbrace{\underbrace{{\bm{\theta}_{W}^i}^T}_{D\times 1}}^{\text{as center}}
@@ -203,20 +203,20 @@ Dato un centro $w_t$, vogliamo predire la parola di contesto $w_{t+j}$. Questa p
 
 Così otteniamo la probabilità di ogni parola del vocabolario come contesto dato il centro $w_t$.
 
-**Remark.** L'indice della parola $w_t$ nella matrice $\mathbf{\theta}_W$ è $i$.
+**Remark.** L'indice della parola $w_t$ nella matrice $\bm{\theta}_W$ è $i$.
 
 ## Massimizzazione della likelihood su tutta la finestra
 
 Per ogni parola centrale $w_t$, la probabilità congiunta di osservare tutte le parole di contesto nella finestra è:
 
 $$
-L(\mathbf{\theta}) = \prod_{j=-m, j \neq 0}^{m} \mathbb P(w_{t+j} | w_t; \mathbf{\theta})
+\prod_{j=-m, j \neq 0}^{m} \mathbb P(w_{t+j} | w_t; \bm{\theta})
 $$
 
-Il nostro obiettivo è trovare i parametri $\mathbf{\theta}$ che massimizzano la likelihood su tutto il corpus, ossia:
+Il nostro obiettivo è trovare i parametri $\bm{\theta}$ che massimizzano la likelihood su tutto il corpus, ossia:
 
 $$
-\mathbf{\theta}^* = \arg\max_{\mathbf{\theta}} \prod_{t=1}^T \prod_{j=-m, j \neq 0}^m \mathbb P(w_{t+j} | w_t; \mathbf{\theta})
+\bm{\theta}^* = \arg\max_{\bm{\theta}} \prod_{t=1}^T \prod_{j=-m, j \neq 0}^m \mathbb P(w_{t+j} | w_t; \bm{\theta})
 $$
 
 ## Funzione di perdita (loss) derivata dalla likelihood
@@ -224,32 +224,32 @@ $$
 L’obiettivo dell'addestramento è massimizzare la **likelihood** dei dati osservati, ovvero la probabilità di osservare le parole di contesto dato il centro, su tutto il corpus:
 
 $$
-L(\mathbf{\theta}) = \prod_{t=1}^T \prod_{j=-m, j \neq 0}^{m} \mathbb P(w_{t+j} \mid w_t; \mathbf{\theta})
+L(\bm{\theta}) = \prod_{t=1}^T \prod_{j=-m, j \neq 0}^{m} \mathbb P(w_{t+j} \mid w_t; \bm{\theta})
 $$
 
 Lavorare direttamente con la likelihood può essere numericamente instabile, quindi passiamo al **logaritmo della likelihood** (log-likelihood), che è una trasformazione monotona e rende il prodotto una somma:
 
 $$
-\log L(\mathbf{\theta}) = \sum_{t=1}^T \sum_{j=-m, j \neq 0}^{m} \log \mathbb P(w_{t+j} \mid w_t; \mathbf{\theta})
+\log L(\bm{\theta}) = \sum_{t=1}^T \sum_{j=-m, j \neq 0}^{m} \log \mathbb P(w_{t+j} \mid w_t; \bm{\theta})
 $$
 
 Il nostro obiettivo è quindi **massimizzare** questa log-likelihood:
 
 $$
-\mathbf{\theta}^* = \arg\max_{\mathbf{\theta}} \log L(\mathbf{\theta})
+\bm{\theta}^* = \arg\max_{\bm{\theta}} \log L(\bm{\theta})
 $$
 
 In pratica, però, gli algoritmi di ottimizzazione numerica (come la discesa del gradiente) lavorano meglio se formuliamo il problema come **minimizzazione**. Per questo motivo, definiamo la **funzione di perdita** come l'opposto della log-likelihood:
 
 $$
-\mathcal{L}(\mathbf{\theta}) = - \sum_{t=1}^T \sum_{j=-m, j \neq 0}^{m} \log \mathbb P(w_{t+j} \mid w_t; \mathbf{\theta})
+\mathcal{L}(\bm{\theta}) = - \sum_{t=1}^T \sum_{j=-m, j \neq 0}^{m} \log \mathbb P(w_{t+j} \mid w_t; \bm{\theta})
 $$
 
-Così facendo, possiamo minimizzare la funzione $\mathcal {L}$ per ottenere i parametri $\mathbf{\theta}^*$ che massimizzano la log-likelihood.
+Così facendo, possiamo minimizzare la funzione $\mathcal {L}$ per ottenere i parametri $\bm{\theta}^*$ che massimizzano la log-likelihood.
 
 Possiamo ora esplicitare $\mathbb P(w_{t+j} \mid w_t)$ usando la softmax, come visto in precedenza. Supponiamo che:
-- $\mathbf u_{w_t}$ sia l'embedding della parola centrale $w_t$, quindi la riga corrispondente a $w_t$ della matrice $\mathbf{\theta}_W$
-- $\mathbf v_{w_{t+j}}$ sia l'embedding della parola di contesto $w_{t+j}$, quindi la riga corrispondente a $w_{t+j}$ della matrice $\mathbf{\theta}_C$
+- $\mathbf u_{w_t}$ sia l'embedding della parola centrale $w_t$, quindi la riga corrispondente a $w_t$ della matrice $\bm{\theta}_W$
+- $\mathbf v_{w_{t+j}}$ sia l'embedding della parola di contesto $w_{t+j}$, quindi la riga corrispondente a $w_{t+j}$ della matrice $\bm{\theta}_C$
 
 Allora la probabilità predetta dal modello è:
 
@@ -266,7 +266,7 @@ $$
 Sostituendo nella funzione di perdita otteniamo:
 
 $$
-\mathcal{L}(\mathbf{\theta})
+\mathcal{L}(\bm{\theta})
 = - \sum_{t=1}^{T} \sum_{\substack{j=-m \\ j \neq 0}}^{m}
     \log
     \frac{
@@ -292,7 +292,7 @@ $$
 che si può riscrivere come:
 
 $$
-\mathcal{L}(w_{t+j}, w_t; \mathbf{\theta})
+\mathcal{L}(w_{t+j}, w_t; \bm{\theta})
 = -\,\underbrace{\mathbf{v}_{\,w_{t+j}}^\top \,\mathbf{u}_{\,w_t}}_\text{Similarità contesto-parola}
   \;+\;
   \underbrace{\log
@@ -305,10 +305,10 @@ Questa formula evidenzia il trade-off tra massimizzare la similarità centro-con
 Infine, la **loss media** su tutto il corpus è:
 
 $$
-\mathcal{L}(\mathbf{\theta})
+\mathcal{L}(\bm{\theta})
 = -\frac{1}{T}
   \sum_{t=1}^{T} \sum_{\substack{j=-m \\ j \neq 0}}^{m}
-    \log \mathbb P(w_{t+j} \mid w_t; \mathbf{\theta})
+    \log \mathbb P(w_{t+j} \mid w_t; \bm{\theta})
 = -\frac{1}{T}
   \sum_{t=1}^{T} \sum_{\substack{j=-m \\ j \neq 0}}^{m}
     \log
@@ -323,6 +323,8 @@ $$
 che coincide con la cross-entropy fra la distribuzione softmax predetta e la distribuzione one-hot vera.
 
 ## Ottimizzazione tramite SGD
+
+🧠 *Prima di continuare, vedi la nota dedicata sul funzionamento dello SGD: [[Discesa del Gradiente]].*
 
 L’addestramento del modello Skip-gram con softmax consiste nell’ottimizzare i parametri $\bm{\theta} = \begin{bmatrix} \bm{\theta}_W \\ \bm{\theta}_C \end{bmatrix}$ per massimizzare la probabilità delle parole di contesto osservate, dato ciascun centro $w_t$ nel corpus.
 
@@ -362,8 +364,8 @@ $$
 \mathcal{L}(w_{t+j}, w_t; \bm{\theta}) = -\log \mathbb{P}(w_{t+j} \mid w_t; \bm{\theta}) = -\log \frac{\exp\left( \mathbf v_{w_{t+j}} \cdot \mathbf u_{w_t} \right)}{\sum_{k=1}^{|V|} \exp\left( \mathbf v_{w_k} \cdot \mathbf u_{w_t} \right)}
 $$
 
-3. Si calcola il **gradiente** della loss rispetto a $\bm{\theta}$ (cioè i vettori coinvolti: $\bm{\theta}_W^{i}$ e tutte le righe di $\bm{\theta}_C$),
-4. Si aggiorna $\bm{\theta}$ secondo la regola standard dello SGD:
+1. Si calcola il **gradiente** della loss rispetto a $\bm{\theta}$,
+2. Si aggiorna $\bm{\theta}$ secondo la regola standard dello SGD:
 
 $$
 \bm{\theta} \leftarrow \bm{\theta} - \eta \cdot \nabla_{\bm{\theta}}\mathcal{L}(w_{t+j}, w_t; \bm{\theta})
@@ -373,7 +375,7 @@ dove $\eta$ è il learning rate.
 
 ### Calcolo del gradiente
 
-Calcoliamo ora il gradiente della funzione di loss rispetto ai vettori di embedding coinvolti, assumendo l’uso del softmax esatto.
+Calcoliamo ora il gradiente della funzione di loss rispetto ai vettori di embedding coinvolti, assumendo sempre l’uso del softmax esatto.
 
 Fissiamo una singola coppia $(w_t, w_{t+j})$, cioè una parola centrale e una parola di contesto. La loss associata a questa coppia è:
 
@@ -402,66 +404,66 @@ $$
 
 1. **Derivata del primo termine** (prodotto scalare):
 
-$$
-\nabla_{\mathbf u_{w_t}} \left( \mathbf v_{w_{t+j}} \cdot \mathbf u_{w_t} \right)
-= \mathbf v_{w_{t+j}}
-$$
+  $$
+  \nabla_{\mathbf u_{w_t}} \left( \mathbf v_{w_{t+j}} \cdot \mathbf u_{w_t} \right)
+  = \mathbf v_{w_{t+j}}
+  $$
 
-Motivo: la derivata di un prodotto scalare $\mathbf a^\top \mathbf x$ rispetto a $\mathbf x$ è $\mathbf a$.
+  Motivo: la derivata di un prodotto scalare $\mathbf a^\top \mathbf x$ rispetto a $\mathbf x$ è $\mathbf a$.
 
-1. **Derivata del secondo termine** (log-somma-esponenziali):
+2. **Derivata del secondo termine** (log-somma-esponenziali + chain rule):
 
-$$
-\nabla_{\mathbf u_{w_t}} \left( \log \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} ) \right)
-$$
+  $$
+  \nabla_{\mathbf u_{w_t}} \left( \log \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} ) \right)
+  $$
 
-**Passo 1** – Applichiamo la derivata del logaritmo:
+  **Passo 1** – Applichiamo la derivata del logaritmo:
 
-$$
-\nabla_{\mathbf u_{w_t}} \log f(\mathbf u_{w_t}) = \frac{1}{f(\mathbf u_{w_t})} \cdot \nabla_{\mathbf u_{w_t}} f(\mathbf u_{w_t})
-$$
+  $$
+  \nabla_{\mathbf u_{w_t}} \log f(\mathbf u_{w_t}) = \frac{1}{f(\mathbf u_{w_t})} \cdot \nabla_{\mathbf u_{w_t}} f(\mathbf u_{w_t})
+  $$
 
-Dove $f(\mathbf u_{w_t}) = \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} )$
+  Dove $f(\mathbf u_{w_t}) = \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} )$
 
-**Passo 2** – Derivata della somma:
+  **Passo 2** – Derivata della somma:
 
-$$
-\nabla_{\mathbf u_{w_t}} \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} ) = \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} ) \cdot \mathbf v_{w_k}
-$$
+  $$
+  \nabla_{\mathbf u_{w_t}} \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} ) = \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} ) \cdot \mathbf v_{w_k}
+  $$
 
-**Passo 3** – Mettiamo tutto insieme:
+  **Passo 3** – Mettiamo tutto insieme:
 
-$$
-\nabla_{\mathbf u_{w_t}} \log \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} )
-= \frac{ \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} ) \cdot \mathbf v_{w_k} }
-{ \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} ) }
-= \sum_{k=1}^{|V|} \mathbb{P}(w_k \mid w_t) \cdot \mathbf v_{w_k}
-$$
+  $$
+  \nabla_{\mathbf u_{w_t}} \log \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} )
+  = \frac{ \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} ) \cdot \mathbf v_{w_k} }
+  { \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} ) }
+  = \sum_{k=1}^{|V|} \mathbb{P}(w_k \mid w_t) \cdot \mathbf v_{w_k}
+  $$
 
-dove:
+  dove:
 
-$$
-\mathbb{P}(w_k \mid w_t) = \frac{\exp(\mathbf v_{w_k} \cdot \mathbf u_{w_t})}{\sum_{j=1}^{|V|} \exp(\mathbf v_{w_j} \cdot \mathbf u_{w_t})}
-$$
+  $$
+  \mathbb{P}(w_k \mid w_t) = \frac{\exp(\mathbf v_{w_k} \cdot \mathbf u_{w_t})}{\sum_{j=1}^{|V|} \exp(\mathbf v_{w_j} \cdot \mathbf u_{w_t})}
+  $$
 
-**Combinazione** dei due termini:
+  **Combinazione** dei due termini:
 
-$$
-\nabla_{\mathbf u_{w_t}} \mathcal{L}_{(t,j)}
-= - \left( \mathbf v_{w_{t+j}} - \sum_{k=1}^{|V|} \mathbb{P}(w_k \mid w_t) \cdot \mathbf v_{w_k} \right)
-$$
+  $$
+  \nabla_{\mathbf u_{w_t}} \mathcal{L}_{(t,j)}
+  = - \left( \mathbf v_{w_{t+j}} - \sum_{k=1}^{|V|} \mathbb{P}(w_k \mid w_t) \cdot \mathbf v_{w_k} \right)
+  $$
 
 
 ---
 
-#### Gradiente rispetto al vettore contesto corretto $\mathbf v_{w_{t+j}}$
+#### Gradiente rispetto al vettore contesto corretto $\mathbf v_{w_{k}}$ con $k = t + j$
 
 Calcoliamo:
 
 $$
 \nabla_{\mathbf v_{w_{t+j}}} \mathcal{L}_{(t,j)} =
 - \nabla_{\mathbf v_{w_{t+j}}} \left( \mathbf v_{w_{t+j}} \cdot \mathbf u_{w_t}
-- \log \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} ) \right)
+- \log \sum_{i=1}^{|V|} \exp( \mathbf v_{w_i} \cdot \mathbf u_{w_t} ) \right)
 $$
 
 
@@ -485,6 +487,7 @@ $$
 Solo il termine $k = t+j$ sopravvive:
 
 $$
+\frac{\partial}{\partial \mathbf v_{w_{t+j}}}\log \exp( \mathbf v_{w_{t+j}} \cdot \mathbf u_{w_t} )
 = \frac{ \exp( \mathbf v_{w_{t+j}} \cdot \mathbf u_{w_t} ) \cdot \mathbf u_{w_t} }
 { \sum_{k=1}^{|V|} \exp( \mathbf v_{w_k} \cdot \mathbf u_{w_t} ) }
 = \mathbb{P}(w_{t+j} \mid w_t) \cdot \mathbf u_{w_t}
@@ -666,10 +669,6 @@ Iterando su molte coppie $(w_t, w_{t+j})$ osservate dal corpus, il modello:
 - indebolisce associazioni tra parole che non co-occorrono.
 
 Alla convergenza, gli embedding $\bm{\theta}_W$ e $\bm{\theta}_C$ riflettono **strutture semantiche** e **sintattiche** apprese dai dati: parole con significati simili finiscono in regioni vicine dello spazio vettoriale.
-
-🧠 *Per approfondimenti tecnici sul funzionamento dello SGD, vedi la nota dedicata: [[Discesa del Gradiente]].*
-
-
 
 ## Conclusioni
 
