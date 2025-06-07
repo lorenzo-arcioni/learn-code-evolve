@@ -1036,6 +1036,8 @@ Quindi la **convergenza è sublineare**: più lenta, ma il costo per iterazione 
 
 In pratica, **SGD** è preferito nei grandi dataset (dove $n$ è molto grande), mentre **GD** è ideale per problemi più piccoli o ben condizionati.
 
+## Criteri di arresto per la discesa del gradiente
+
 
 ## Conclusioni
 
