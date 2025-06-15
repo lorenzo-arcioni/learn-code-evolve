@@ -50,10 +50,8 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center space-x-2">
-          <div className="bg-primary rounded-md w-8 h-8 flex items-center justify-center">
-            <span className="text-primary-foreground font-bold">ML</span>
-          </div>
-          <span className="font-bold text-xl">ML Learn</span>
+          <img src="/logo.png" alt="Logo" className="rounded-md h-12 w-12" />
+          <span className="font-bold text-xl">Machine Learn</span>
         </Link>
 
         {isMobile ? (

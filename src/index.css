@@ -6,104 +6,105 @@
 @layer base {
   :root {
     /* Base colors */
-    --background: 0 0% 100%;
-    --foreground: 222.2 47.4% 11.2%;
+    --background: 0 0% 100%; /* White */
+    --foreground: 0 0% 10%;  /* Very dark gray */
 
     /* Card colors */
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
+    --card: 0 0% 98%; /* Light gray */
+    --card-foreground: 0 0% 10%; /* Very dark gray */
 
     /* Popover colors */
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
+    --popover: 0 0% 98%; /* Light gray */
+    --popover-foreground: 0 0% 10%; /* Very dark gray */
 
-    /* Primary colors - Deep purple */
-    --primary: 265 83% 45%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary colors - Neutral dark gray */
+    --primary: 0 0% 20%; /* Dark gray */
+    --primary-foreground: 0 0% 98%; /* Almost white */
 
-    /* Secondary colors - Soft blue */
-    --secondary: 217 91% 60%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary colors - Medium gray */
+    --secondary: 0 0% 50%; /* Mid gray */
+    --secondary-foreground: 0 0% 100%; /* White */
 
     /* Muted colors */
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 90%; /* Light gray */
+    --muted-foreground: 0 0% 40%; /* Medium-dark gray */
 
     /* Accent colors */
-    --accent: 250 95% 76%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 0 0% 70%; /* Medium-light gray */
+    --accent-foreground: 0 0% 10%; /* Very dark gray */
 
     /* Destructive colors */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 50%; /* Muted red for warnings */
+    --destructive-foreground: 0 0% 100%; /* White */
 
     /* Border and input colors */
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 265 83% 45%;
+    --border: 0 0% 85%; /* Soft gray */
+    --input: 0 0% 95%; /* Very light gray */
+    --ring: 0 0% 20%; /* Dark gray for focus ring */
 
     /* Border radius */
     --radius: 0.5rem;
 
     /* Sidebar colors */
-    --sidebar-background: 240 20% 97%;
-    --sidebar-foreground: 240 10% 26.1%;
-    --sidebar-primary: 265 83% 45%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 250 95% 76%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 265 83% 45%;
+    --sidebar-background: 0 0% 96%; /* Very light gray */
+    --sidebar-foreground: 0 0% 20%; /* Dark gray */
+    --sidebar-primary: 0 0% 20%; /* Dark gray */
+    --sidebar-primary-foreground: 0 0% 98%; /* Almost white */
+    --sidebar-accent: 0 0% 60%; /* Mid gray */
+    --sidebar-accent-foreground: 0 0% 10%; /* Very dark gray */
+    --sidebar-border: 0 0% 85%; /* Soft border gray */
+    --sidebar-ring: 0 0% 20%; /* Ring dark gray */
   }
 
   .dark {
-    /* Base colors */
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+  /* Base colors */
+  --background: 0 0% 6%;   /* Almost black */
+  --foreground: 0 0% 95%;  /* Very light gray */
 
-    /* Card colors */
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+  /* Card colors */
+  --card: 0 0% 8%;         /* Very dark gray */
+  --card-foreground: 0 0% 95%; /* Very light gray */
 
-    /* Popover colors */
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+  /* Popover colors */
+  --popover: 0 0% 10%;     /* Very dark gray */
+  --popover-foreground: 0 0% 95%; /* Very light gray */
 
-    /* Primary colors - Deep purple */
-    --primary: 265 83% 45%;
-    --primary-foreground: 210 40% 98%;
+  /* Primary colors - Neutral light gray */
+  --primary: 0 0% 85%;     /* Light gray */
+  --primary-foreground: 0 0% 10%; /* Very dark gray */
 
-    /* Secondary colors - Soft blue */
-    --secondary: 217 91% 60%;
-    --secondary-foreground: 210 40% 98%;
+  /* Secondary colors - Mid gray */
+  --secondary: 0 0% 60%;   /* Medium gray */
+  --secondary-foreground: 0 0% 100%; /* White */
 
-    /* Muted colors */
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+  /* Muted colors */
+  --muted: 0 0% 20%;       /* Dark muted gray */
+  --muted-foreground: 0 0% 65%; /* Medium-light gray */
 
-    /* Accent colors */
-    --accent: 250 95% 76%;
-    --accent-foreground: 210 40% 98%;
+  /* Accent colors */
+  --accent: 0 0% 50%;      /* Medium gray */
+  --accent-foreground: 0 0% 95%; /* Very light gray */
 
-    /* Destructive colors */
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+  /* Destructive colors */
+  --destructive: 0 60% 40%;  /* Muted red on dark bg */
+  --destructive-foreground: 0 0% 98%; /* Almost white */
 
-    /* Border and input colors */
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 265 83% 45%;
+  /* Border and input colors */
+  --border: 0 0% 20%;      /* Dark border */
+  --input: 0 0% 15%;       /* Input darker gray */
+  --ring: 0 0% 85%;        /* Light gray ring for focus */
 
-    /* Sidebar colors */
-    --sidebar-background: 240 10% 5%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 265 83% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 250 95% 76%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 265 83% 45%;
+  /* Sidebar colors */
+  --sidebar-background: 0 0% 8%; /* Dark sidebar bg */
+  --sidebar-foreground: 0 0% 90%; /* Light text */
+  --sidebar-primary: 0 0% 85%; /* Light gray highlight */
+  --sidebar-primary-foreground: 0 0% 10%; /* Dark text */
+  --sidebar-accent: 0 0% 60%; /* Mid gray accent */
+  --sidebar-accent-foreground: 0 0% 95%; /* Very light gray */
+  --sidebar-border: 0 0% 20%; /* Dark border */
+  --sidebar-ring: 0 0% 85%; /* Light ring for focus */
   }
+
 }
 
 @layer base {
