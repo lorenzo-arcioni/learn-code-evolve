@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Book, Code, Cpu, Calculator, BookText, Loader2 } from "lucide-react";
 import { coursesApi } from '@/services/api'; // Importa il servizio API per i corsi
 import { toast } from '@/components/ui/use-toast'; // Assicurati di avere un componente toast
+import { useNavigate } from 'react-router-dom';
 
 // Funzione per determinare l'icona in base alla categoria
 const getCategoryIcon = (category: string) => {
@@ -26,6 +27,7 @@ const Courses = () => {
   const [coursesByCategory, setCoursesByCategory] = useState<Record<string, any[]>>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -63,13 +65,16 @@ const Courses = () => {
     loadCourses();
   }, []);
 
-  const handleCourseRedirect = (courseUrl: string) => {
-    if (courseUrl) {
-      window.location.href = courseUrl;
+  const handleCourseRedirect = (courseId: string) => {
+    console.log('Navigating to course:', courseId); // Debug log
+    if (courseId) {
+      // Naviga alla pagina del contenuto del corso invece di usare window.location.href
+      navigate(`/courses/${courseId}`);
     } else {
+      console.error('Course ID is missing'); // Debug log
       toast({
         title: 'Errore',
-        description: 'URL del corso non disponibile',
+        description: 'ID del corso non disponibile',
         variant: 'destructive'
       });
     }
@@ -146,10 +151,16 @@ const Courses = () => {
                       <Button 
                         className="w-full" 
                         variant={course.status === 'coming_soon' ? 'secondary' : 'default'}
-                        onClick={() => course.status !== 'coming_soon' && handleCourseRedirect(course.url)}
+                        onClick={() => {
+                          if (course.status !== 'coming_soon') {
+                            // Usa _id invece di id
+                            const courseId = course._id || course.id;
+                            handleCourseRedirect(String(courseId));
+                          }
+                        }}
                         disabled={course.status === 'coming_soon'}
                       >
-                        {course.status === 'coming_soon' ? 'Prossimamente' : 'Iscriviti Ora'}
+                        {course.status === 'coming_soon' ? 'Prossimamente' : 'Vedi il programma'}
                       </Button>
                     </CardFooter>
                   </Card>

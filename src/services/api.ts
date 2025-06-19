@@ -188,8 +188,15 @@ export const coursesApi = {
     return response.data;
   },
   
-  enrollInCourse: async (courseId: string) => {
-    const response = await api.post(`/courses/${courseId}/enroll`);
+    // Nuova funzione per ottenere il contenuto completo del corso
+  getCourseContent: async (courseId: string) => {
+    const response = await api.get(`/courses/${courseId}`);
+    return response.data;
+  },
+  
+  // Nuova funzione per ottenere l'anteprima del corso
+  getCoursePreview: async (courseId: string) => {
+    const response = await api.get(`/courses/${courseId}/preview`);
     return response.data;
   },
 };

@@ -669,6 +669,9 @@ async def add_course(
     
     # Prepare the course data for insertion
     course_dict = course_data.dict()
+
+    # Delete the key "id"
+    course_dict.pop("id")
     
     # Add creation timestamp
     course_dict["created_at"] = datetime.utcnow()

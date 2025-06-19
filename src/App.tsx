@@ -14,6 +14,7 @@ import Practice from "./pages/Practice";
 import ExerciseDetail from "./pages/ExerciseDetail";
 import Leaderboard from "./pages/Leaderboard";
 import Courses from "./pages/Courses";
+import CourseContent from "./pages/CourseContent";
 import Shop from "./pages/Shop";
 import Profile from "./pages/Profile";
 import About from "./pages/About";
@@ -53,6 +54,7 @@ const App: React.FC = () => (
             <Route path="/practice/:exerciseId" element={<ExerciseDetail />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/courses" element={<Courses />} />
+            <Route path="/courses/:courseId" element={<CourseContent />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/about" element={<About />} />

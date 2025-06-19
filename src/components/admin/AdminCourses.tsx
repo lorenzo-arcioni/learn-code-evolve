@@ -24,6 +24,7 @@ const AdminCourses = () => {
     price: 0,
     instructor: "",
     image_url: "",
+    status: "active",
     course_url: "", // Added course URL field
   });
 
@@ -56,6 +57,7 @@ const AdminCourses = () => {
         price: 0,
         instructor: "",
         image_url: "",
+        status: "active",
         course_url: "", // Reset course URL
       });
     } catch (error) {
@@ -96,12 +98,12 @@ const AdminCourses = () => {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="machine-learning">Machine Learning</SelectItem>
-                  <SelectItem value="deep-learning">Deep Learning</SelectItem>
-                  <SelectItem value="natural-language-processing">NLP</SelectItem>
-                  <SelectItem value="computer-vision">Computer Vision</SelectItem>
-                  <SelectItem value="data-science">Data Science</SelectItem>
-                  <SelectItem value="statistics">Statistics</SelectItem>
+                  <SelectItem value="Machine Learning">Machine Learning</SelectItem>
+                  <SelectItem value="Deep Learning">Deep Learning</SelectItem>
+                  <SelectItem value="NLP">NLP</SelectItem>
+                  <SelectItem value="Computer Vision">Computer Vision</SelectItem>
+                  <SelectItem value="Data Science">Data Science</SelectItem>
+                  <SelectItem value="Statistics">Statistics</SelectItem>
                 </SelectContent>
               </Select>
             </div>

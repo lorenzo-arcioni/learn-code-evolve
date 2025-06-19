@@ -10,7 +10,7 @@ import shutil
 from models import (
     User, UserCreate, UserInDB, Token, Exercise, ExerciseCreate,
     Theory, TheoryCreate, LeaderboardEntry, UserUpdate, AvatarResponse,
-    ConsultationRequest, Product, Course, ContentView
+    ConsultationRequest, Product, Course, CourseContent, ContentView
 )
 from auth import (
     authenticate_user, create_access_token, get_current_active_user,
@@ -421,47 +421,89 @@ async def get_courses():
 
     return categorized_courses
 
-@router.get("/courses/{course_id}", response_model=Course)
-async def get_course(course_id: int):
-    course = await db["courses"].find_one({"id": course_id})
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
-    return Course(**course)
+import logging
+logger = logging.getLogger(__name__)
 
-@router.post("/courses/{course_id}/enroll", response_model=Dict[str, Any])
-async def enroll_in_course(
-    course_id: int,
-    current_user: UserInDB = Depends(get_current_active_user)
-):
-    # Check if course exists
-    course = await db["courses"].find_one({"id": course_id})
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
+@router.get("/courses/{course_id}", response_model=CourseContent)
+async def get_course_content(course_id: str):
+    """
+    Recupera il contenuto completo di un corso specifico dal database.
+    Include moduli, lezioni, prerequisiti e tutti i dettagli del programma.
+    """
+    logger.info(f"Received request for course_id: {course_id}")
     
-    # Check if user is already enrolled
-    enrollment = await db["enrollments"].find_one({
-        "user_id": str(current_user.id),
-        "course_id": course_id
-    })
+    try:
+        # Valida che sia un ObjectId valido
+        if not ObjectId.is_valid(course_id):
+            logger.error(f"Invalid ObjectId format: {course_id}")
+            raise HTTPException(status_code=422, detail="Invalid course ID format")
+        
+        logger.info(f"Searching for course with ObjectId: {course_id}")
+        
+        # Cerca usando _id (se l'ID che passi è l'_id del documento)
+        course_content = await db["course_contents"].find_one({"course_id": ObjectId(course_id)})
+        
+        logger.info(f"Database query result: {course_content is not None}")
+        
+        if not course_content:
+            logger.warning(f"Course content not found for ID: {course_id}")
+            raise HTTPException(status_code=404, detail="Course content not found")
+        
+        logger.info(f"Raw course_content keys: {list(course_content.keys()) if course_content else 'None'}")
+        logger.info(f"Course content _id: {course_content.get('_id')}")
+        logger.info(f"Course content course_id: {course_content.get('course_id')}")
+        
+        # Prova a creare il modello Pydantic
+        logger.info("Attempting to create CourseContent model...")
+        result = CourseContent(**course_content)
+        logger.info("CourseContent model created successfully")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Exception occurred: {type(e).__name__}: {str(e)}")
+        logger.error(f"Exception details: {repr(e)}")
+        
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=f"Error retrieving course content: {str(e)}")
+
+@router.get("/courses/{course_id}/preview", response_model=Dict[str, Any])
+async def get_course_preview(course_id: int):
+    """
+    Recupera un'anteprima del corso con le prime lezioni gratuite.
+    Utilizzato per mostrare contenuto di anteprima agli utenti non iscritti.
+    """
+    course_content = await db["course_contents"].find_one({"course_id": course_id})
     
-    if enrollment:
-        return {
-            "success": False,
-            "message": "You are already enrolled in this course"
-        }
+    if not course_content:
+        raise HTTPException(status_code=404, detail="Course content not found")
     
-    # Create enrollment
-    enrollment_data = {
-        "user_id": str(current_user.id),
-        "course_id": course_id,
-        "enrolled_at": datetime.utcnow(),
-        "progress": 0,
-        "completed": False
+    # Filtra solo le lezioni gratuite per l'anteprima
+    preview_modules = []
+    for module in course_content.get("modules", []):
+        preview_lessons = [lesson for lesson in module.get("lessons", []) if lesson.get("is_free", False)]
+        if preview_lessons:
+            preview_module = {
+                **module,
+                "lessons": preview_lessons
+            }
+            preview_modules.append(preview_module)
+    
+    preview_data = {
+        "id": course_content.get("id"),
+        "course_id": course_content.get("course_id"),
+        "title": course_content.get("title"),
+        "description": course_content.get("description"),
+        "instructor": course_content.get("instructor"),
+        "duration": course_content.get("duration"),
+        "level": course_content.get("level"),
+        "category": course_content.get("category"),
+        "learning_objectives": course_content.get("learning_objectives", []),
+        "prerequisites": course_content.get("prerequisites", []),
+        "modules": preview_modules,
+        "total_modules": len(course_content.get("modules", [])),
+        "total_lessons": sum(len(module.get("lessons", [])) for module in course_content.get("modules", []))
     }
     
-    await db["enrollments"].insert_one(enrollment_data)
-    
-    return {
-        "success": True,
-        "message": f"Successfully enrolled in {course['title']}"
-    }
+    return preview_data

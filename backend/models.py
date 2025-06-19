@@ -201,6 +201,7 @@ class Course(BaseModel):
     price: str
     instructor: str
     image_url: str
+    status: str
     url: str = ""
 
     model_config = {
@@ -209,6 +210,68 @@ class Course(BaseModel):
         "populate_by_name": True
     }
 
+class Lesson(BaseModel):
+    id: int
+    title: str
+    description: str
+    duration: str  # es. "45 min"
+    video_url: Optional[str] = None
+    materials: Optional[List[str]] = []  # Links a materiali aggiuntivi
+    is_free: bool = False  # Se la lezione è gratuita per l'anteprima
+
+class Module(BaseModel):
+    id: int
+    title: str
+    description: str
+    lessons: List[Lesson]
+    estimated_hours: str  # es. "3-4 ore"
+
+class Prerequisite(BaseModel):
+    title: str
+    description: str
+    is_required: bool = True
+
+class LearningObjective(BaseModel):
+    objective: str
+    description: Optional[str] = None
+
+class CourseContent(BaseModel):
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    course_id: PyObjectId  # Riferimento al corso principale
+    title: str
+    description: str
+    full_description: str  # Descrizione dettagliata
+    instructor: str
+    instructor_bio: str  # Biografia del docente
+    instructor_image: Optional[str] = None
+    duration: str
+    level: str
+    category: str
+    price: str
+    image_url: str
+    
+    # Contenuto del corso
+    learning_objectives: List[LearningObjective]
+    prerequisites: List[Prerequisite]
+    modules: List[Module]
+    
+    # Informazioni aggiuntive
+    certification: bool = False
+    certificate_description: Optional[str] = None
+    target_audience: List[str] = []  # A chi è rivolto il corso
+    tools_required: List[str] = []  # Strumenti necessari
+    
+    # Metadati
+    created_at: datetime
+    updated_at: datetime
+    is_published: bool = True
+    
+    class Config:
+        populate_by_name = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat(),
+            ObjectId: str  # Aggiungi questo per serializzare ObjectId come string
+        }
 # ----------------------
 # Consultation Request
 # ----------------------
